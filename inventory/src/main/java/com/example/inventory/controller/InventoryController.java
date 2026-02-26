@@ -1,0 +1,92 @@
+package com.example.inventory.controller;
+
+import com.example.inventory.entity.Inventory;
+import com.example.inventory.enums.InventoryState;
+import com.example.inventory.service.InventoryService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/inventory")
+public class InventoryController {
+
+    private final InventoryService inventoryService;
+
+    public InventoryController(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
+    @PostMapping
+    public ResponseEntity<Inventory> createInventory(@RequestBody CreateInventoryRequest request) {
+        Inventory inventory = inventoryService.createInventory(request.getProductId(), request.getQuantity());
+        return new ResponseEntity<>(inventory, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/move")
+    public ResponseEntity<Void> moveInventory(@RequestBody MoveInventoryRequest request) {
+        inventoryService.moveInventory(request.getProductId(), request.getFromState(), request.getToState(), request.getQuantity());
+        return ResponseEntity.ok().build();
+    }
+
+    public static class CreateInventoryRequest {
+        private Long productId;
+        private Integer quantity;
+
+        public Long getProductId() {
+            return productId;
+        }
+
+        public void setProductId(Long productId) {
+            this.productId = productId;
+        }
+
+        public Integer getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(Integer quantity) {
+            this.quantity = quantity;
+        }
+    }
+
+    public static class MoveInventoryRequest {
+        private Long productId;
+        private InventoryState fromState;
+        private InventoryState toState;
+        private Integer quantity;
+
+        public Long getProductId() {
+            return productId;
+        }
+
+        public void setProductId(Long productId) {
+            this.productId = productId;
+        }
+
+        public InventoryState getFromState() {
+            return fromState;
+        }
+
+        public void setFromState(InventoryState fromState) {
+            this.fromState = fromState;
+        }
+
+        public InventoryState getToState() {
+            return toState;
+        }
+
+        public void setToState(InventoryState toState) {
+            this.toState = toState;
+        }
+
+        public Integer getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(Integer quantity) {
+            this.quantity = quantity;
+        }
+    }
+}
+

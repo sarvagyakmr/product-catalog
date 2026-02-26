@@ -1,0 +1,73 @@
+package com.example.productcatalog.entity;
+
+import com.example.productcatalog.enums.ProductType;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Table("PRODUCTS")
+public class Product {
+
+    @Id
+    @Column("ID")
+    private Long id;
+    @Column("CLIENT_ID")
+    private Long clientId;
+    @Column("SKU_ID")
+    private String skuId;
+    @Column("TYPE")
+    private ProductType type;
+    @Column("PACK_SIZE")
+    private Integer packSize;
+
+
+    public Product() {
+    }
+
+    public Product(Long clientId, String skuId, ProductType type, Integer packSize) {
+        this.clientId = clientId;
+        this.skuId = skuId;
+        this.type = type;
+        this.packSize = packSize;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(Long clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getSkuId() {
+        return skuId;
+    }
+
+    public void setSkuId(String skuId) {
+        this.skuId = skuId;
+    }
+
+    public ProductType getType() {
+        return type;
+    }
+
+    public void setType(ProductType type) {
+        this.type = type;
+    }
+
+    public Integer getPackSize() {
+        return packSize;
+    }
+
+    public void setPackSize(Integer packSize) {
+        this.packSize = packSize;
+    }
+}
