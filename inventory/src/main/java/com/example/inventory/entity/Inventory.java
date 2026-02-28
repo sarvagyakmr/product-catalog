@@ -15,6 +15,9 @@ public class Inventory {
     @Column("PRODUCT_ID")
     private Long productId;
 
+    @Column("PACK_TYPE")
+    private com.example.inventory.enums.PackType packType;
+
     @Column("QUANTITY")
     private Integer quantity;
 
@@ -24,8 +27,9 @@ public class Inventory {
     public Inventory() {
     }
 
-    public Inventory(Long productId, Integer quantity, InventoryState state) {
+    public Inventory(Long productId, com.example.inventory.enums.PackType packType, Integer quantity, InventoryState state) {
         this.productId = productId;
+        this.packType = packType;
         this.quantity = quantity;
         this.state = state;
     }
@@ -44,6 +48,14 @@ public class Inventory {
 
     public void setProductId(Long productId) {
         this.productId = productId;
+    }
+
+    public com.example.inventory.enums.PackType getPackType() {
+        return packType;
+    }
+
+    public void setPackType(com.example.inventory.enums.PackType packType) {
+        this.packType = packType;
     }
 
     public Integer getQuantity() {

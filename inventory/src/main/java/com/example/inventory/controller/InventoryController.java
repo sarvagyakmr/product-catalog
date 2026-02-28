@@ -2,6 +2,7 @@ package com.example.inventory.controller;
 
 import com.example.inventory.entity.Inventory;
 import com.example.inventory.enums.InventoryState;
+import com.example.inventory.enums.PackType;
 import com.example.inventory.service.InventoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,17 @@ public class InventoryController {
     public ResponseEntity<Void> moveInventory(@RequestBody MoveInventoryRequest request) {
         inventoryService.moveInventory(request.getProductId(), request.getFromState(), request.getToState(), request.getQuantity());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/convert")
+    public ResponseEntity<Void> convertInventory(@RequestBody ConvertInventoryRequest request) {
+        inventoryService.convertInventory(request.getSkuId(), request.getFromPackType(), request.getToPackType(), request.getQuantity());
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<java.util.List<Inventory>> getInventoryByProductId(@PathVariable("productId") Long productId) {
+        return ResponseEntity.ok(inventoryService.getInventoryByProductId(productId));
     }
 
     public static class CreateInventoryRequest {
@@ -78,6 +90,45 @@ public class InventoryController {
 
         public void setToState(InventoryState toState) {
             this.toState = toState;
+        }
+
+        public Integer getQuantity() {
+            return quantity;
+        }
+
+        public void setQuantity(Integer quantity) {
+            this.quantity = quantity;
+        }
+    }
+
+    public static class ConvertInventoryRequest {
+        private String skuId;
+        private PackType fromPackType;
+        private PackType toPackType;
+        private Integer quantity;
+
+        public String getSkuId() {
+            return skuId;
+        }
+
+        public void setSkuId(String skuId) {
+            this.skuId = skuId;
+        }
+
+        public PackType getFromPackType() {
+            return fromPackType;
+        }
+
+        public void setFromPackType(PackType fromPackType) {
+            this.fromPackType = fromPackType;
+        }
+
+        public PackType getToPackType() {
+            return toPackType;
+        }
+
+        public void setToPackType(PackType toPackType) {
+            this.toPackType = toPackType;
         }
 
         public Integer getQuantity() {

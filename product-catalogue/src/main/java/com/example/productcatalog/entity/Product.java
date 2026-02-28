@@ -1,5 +1,6 @@
 package com.example.productcatalog.entity;
 
+import com.example.productcatalog.enums.PackType;
 import com.example.productcatalog.enums.ProductType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
@@ -17,18 +18,18 @@ public class Product {
     private String skuId;
     @Column("TYPE")
     private ProductType type;
-    @Column("PACK_SIZE")
-    private Integer packSize;
+    @Column("PACK_TYPE")
+    private PackType packType;
 
 
     public Product() {
     }
 
-    public Product(Long clientId, String skuId, ProductType type, Integer packSize) {
+    public Product(Long clientId, String skuId, ProductType type, PackType packType) {
         this.clientId = clientId;
         this.skuId = skuId;
         this.type = type;
-        this.packSize = packSize;
+        this.packType = packType;
     }
 
     public Long getId() {
@@ -63,11 +64,11 @@ public class Product {
         this.type = type;
     }
 
-    public Integer getPackSize() {
-        return packSize;
+    public PackType getPackType() {
+        return packType;
     }
 
-    public void setPackSize(Integer packSize) {
-        this.packSize = packSize;
+    public void setPackType(PackType packType) {
+        this.packType = packType;
     }
 }

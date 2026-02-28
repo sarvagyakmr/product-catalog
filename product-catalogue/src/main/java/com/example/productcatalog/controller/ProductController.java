@@ -39,4 +39,24 @@ public class ProductController {
         return product.map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
+    @GetMapping("/sku/{skuId}")
+    public ResponseEntity<List<Product>> getProductsBySkuId(@PathVariable("skuId") String skuId) {
+        List<Product> products = productRepository.findBySkuId(skuId);
+        if (products.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/sku/{skuId}/pack-type/{packType}")
+    public ResponseEntity<Product> getProductBySkuIdAndPackType(
+            @PathVariable("skuId") String skuId,
+            @PathVariable("packType") com.example.productcatalog.enums.PackType packType) {
+        return productRepository.findBySkuId(skuId).stream()
+                .filter(product -> packType == product.getPackType())
+                .findFirst()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }
