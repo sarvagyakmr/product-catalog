@@ -1,8 +1,8 @@
 package com.example.inventory.repository;
 
+import com.example.commons.enums.InventoryState;
+import com.example.commons.enums.PackType;
 import com.example.inventory.entity.Inventory;
-import com.example.inventory.enums.InventoryState;
-import com.example.inventory.enums.PackType;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

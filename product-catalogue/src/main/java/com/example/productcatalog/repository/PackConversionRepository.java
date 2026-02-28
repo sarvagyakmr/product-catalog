@@ -1,7 +1,7 @@
 package com.example.productcatalog.repository;
 
+import com.example.commons.enums.PackType;
 import com.example.productcatalog.entity.PackConversion;
-import com.example.productcatalog.enums.PackType;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

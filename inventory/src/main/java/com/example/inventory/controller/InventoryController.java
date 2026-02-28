@@ -1,8 +1,8 @@
 package com.example.inventory.controller;
 
+import com.example.commons.enums.InventoryState;
+import com.example.commons.enums.PackType;
 import com.example.inventory.entity.Inventory;
-import com.example.inventory.enums.InventoryState;
-import com.example.inventory.enums.PackType;
 import com.example.inventory.service.InventoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

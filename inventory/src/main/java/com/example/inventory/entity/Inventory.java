@@ -1,6 +1,7 @@
 package com.example.inventory.entity;
 
-import com.example.inventory.enums.InventoryState;
+import com.example.commons.enums.InventoryState;
+import com.example.commons.enums.PackType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -16,7 +17,7 @@ public class Inventory {
     private Long productId;
 
     @Column("PACK_TYPE")
-    private com.example.inventory.enums.PackType packType;
+    private PackType packType;
 
     @Column("QUANTITY")
     private Integer quantity;
@@ -27,7 +28,7 @@ public class Inventory {
     public Inventory() {
     }
 
-    public Inventory(Long productId, com.example.inventory.enums.PackType packType, Integer quantity, InventoryState state) {
+    public Inventory(Long productId, PackType packType, Integer quantity, InventoryState state) {
         this.productId = productId;
         this.packType = packType;
         this.quantity = quantity;
@@ -50,11 +51,11 @@ public class Inventory {
         this.productId = productId;
     }
 
-    public com.example.inventory.enums.PackType getPackType() {
+    public PackType getPackType() {
         return packType;
     }
 
-    public void setPackType(com.example.inventory.enums.PackType packType) {
+    public void setPackType(PackType packType) {
         this.packType = packType;
     }
 

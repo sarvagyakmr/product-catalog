@@ -1,5 +1,6 @@
 package com.example.productcatalog.controller;
 
+import com.example.commons.enums.PackType;
 import com.example.productcatalog.entity.Product;
 import com.example.productcatalog.repository.ProductRepository;
 import org.springframework.http.HttpStatus;
@@ -26,13 +27,6 @@ public class ProductController {
         return new ResponseEntity<>(savedProduct, HttpStatus.CREATED);
     }
 
-
-    @GetMapping
-    public ResponseEntity<List<Product>> getAllProducts() {
-        List<Product> products = productRepository.findAll();
-        return ResponseEntity.ok(products);
-    }
-
     @GetMapping("/{id}")
     public ResponseEntity<Product> getProductById(@PathVariable("id") Long id) {
         Optional<Product> product = productRepository.findById(id);
@@ -40,23 +34,25 @@ public class ProductController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/sku/{skuId}")
-    public ResponseEntity<List<Product>> getProductsBySkuId(@PathVariable("skuId") String skuId) {
+    @GetMapping
+    public ResponseEntity<?> getProducts(
+            @RequestParam(value = "skuId", required = false) String skuId,
+            @RequestParam(value = "packType", required = false) PackType packType) {
+        if (skuId == null) {
+            List<Product> products = productRepository.findAll();
+            return ResponseEntity.ok(products);
+        }
         List<Product> products = productRepository.findBySkuId(skuId);
         if (products.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
+        if (packType != null) {
+            return products.stream()
+                    .filter(product -> packType == product.getPackType())
+                    .findFirst()
+                    .map(ResponseEntity::ok)
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        }
         return ResponseEntity.ok(products);
-    }
-
-    @GetMapping("/sku/{skuId}/pack-type/{packType}")
-    public ResponseEntity<Product> getProductBySkuIdAndPackType(
-            @PathVariable("skuId") String skuId,
-            @PathVariable("packType") com.example.productcatalog.enums.PackType packType) {
-        return productRepository.findBySkuId(skuId).stream()
-                .filter(product -> packType == product.getPackType())
-                .findFirst()
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 }

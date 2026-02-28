@@ -1,6 +1,6 @@
 package com.example.productcatalog.entity;
 
-import com.example.productcatalog.enums.VariantType;
+import com.example.commons.enums.VariantType;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;

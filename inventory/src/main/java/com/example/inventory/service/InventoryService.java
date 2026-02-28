@@ -1,14 +1,15 @@
 package com.example.inventory.service;
 
-import com.example.inventory.config.ProductCatalogClient;
-import com.example.inventory.dto.ComboProductDto;
-import com.example.inventory.dto.PackConversionDto;
-import com.example.inventory.dto.ProductDto;
-import com.example.inventory.enums.PackType;
+import com.example.commons.client.ProductCatalogClient;
+import com.example.commons.constants.ErrorMessages;
+import com.example.commons.dto.ComboProductDto;
+import com.example.commons.dto.PackConversionDto;
+import com.example.commons.dto.ProductDto;
+import com.example.commons.enums.InventoryState;
+import com.example.commons.enums.PackType;
+import com.example.commons.exception.InventoryException;
+import com.example.commons.exception.InventoryException.InventoryErrorCode;
 import com.example.inventory.entity.Inventory;
-import com.example.inventory.enums.InventoryState;
-import com.example.inventory.exception.InventoryException;
-import com.example.inventory.exception.InventoryException.InventoryErrorCode;
 import com.example.inventory.repository.InventoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,7 +32,7 @@ public class InventoryService {
     public Inventory createInventory(Long productId, Integer quantity) {
         ProductDto product = productCatalogClient.getProduct(productId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                        "Product does not exist with ID: " + productId));
+                        String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_ID, productId)));
 
         if ("COMBO".equals(product.getType())) {
             createComboInventory(productId, quantity, PackType.valueOf(product.getPackType()));
@@ -44,7 +45,7 @@ public class InventoryService {
         List<ComboProductDto> components = productCatalogClient.getComboProduct(comboId);
         if (components.isEmpty()) {
             throw new InventoryException(InventoryErrorCode.COMBO_DEFINITION_NOT_FOUND,
-                    "Combo definition not found for product ID: " + comboId);
+                    String.format(ErrorMessages.COMBO_DEFINITION_NOT_FOUND, comboId));
         }
 
         for (ComboProductDto component : components) {
@@ -54,7 +55,7 @@ public class InventoryService {
 
             ProductDto componentProduct = productCatalogClient.getProduct(componentId)
                     .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                            "Component product not found with ID: " + componentId));
+                            String.format(ErrorMessages.COMPONENT_PRODUCT_NOT_FOUND_WITH_ID, componentId)));
 
             PackType componentPackType = PackType.valueOf(componentProduct.getPackType());
             int componentConvertedQuantity;
@@ -65,8 +66,7 @@ public class InventoryService {
                 PackConversionDto conversion = productCatalogClient
                         .getPackConversion(componentProduct.getSkuId(), new PackConversionDto.PackConversionQuery(comboPackType, componentPackType))
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PACK_CONVERSION_NOT_FOUND,
-                                "Pack conversion not found for sku " + componentProduct.getSkuId()
-                                        + " from " + comboPackType + " to " + componentPackType));
+                                String.format(ErrorMessages.PACK_CONVERSION_NOT_FOUND, componentProduct.getSkuId(), comboPackType, componentPackType)));
 
                 componentConvertedQuantity = calculateConvertedQuantity(componentQuantity, conversion.getConversionFactor());
             }
@@ -93,13 +93,13 @@ public class InventoryService {
     public void moveInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantityToMove) {
         ProductDto product = productCatalogClient.getProduct(productId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                        "Product does not exist with ID: " + productId));
+                        String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_ID, productId)));
 
         validateTransition(fromState, toState);
 
         if (quantityToMove <= 0) {
             throw new InventoryException(InventoryErrorCode.INSUFFICIENT_QUANTITY,
-                    "Quantity to move must be positive");
+                    ErrorMessages.QUANTITY_MUST_BE_POSITIVE);
         }
 
         // 1. Validation Phase - check all before executing any move
@@ -113,36 +113,36 @@ public class InventoryService {
     public void convertInventory(String skuId, PackType fromPackType, PackType toPackType, Integer quantityToConvert) {
         if (fromPackType == toPackType) {
             throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
-                    "From and to pack types must be different");
+                    ErrorMessages.PACK_CONVERSION_SAME_TYPE);
         }
 
         if (quantityToConvert <= 0) {
             throw new InventoryException(InventoryErrorCode.INSUFFICIENT_QUANTITY,
-                    "Quantity to convert must be positive");
+                    ErrorMessages.QUANTITY_TO_CONVERT_MUST_BE_POSITIVE);
         }
 
         ProductDto fromProduct = productCatalogClient.getProductBySkuIdAndPackType(skuId, fromPackType)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                        "Product does not exist with sku: " + skuId + " and pack type: " + fromPackType));
+                        String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_SKU_AND_PACK_TYPE, skuId, fromPackType)));
 
         ProductDto toProduct = productCatalogClient.getProductBySkuIdAndPackType(skuId, toPackType)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                        "Product does not exist with sku: " + skuId + " and pack type: " + toPackType));
+                        String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_SKU_AND_PACK_TYPE, skuId, toPackType)));
 
         if (!fromPackType.name().equals(fromProduct.getPackType())) {
             throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
-                    "Product pack type " + fromProduct.getPackType() + " does not match from pack type " + fromPackType);
+                    String.format(ErrorMessages.PACK_TYPE_MISMATCH_FROM, fromProduct.getPackType(), fromPackType));
         }
 
         if (!toPackType.name().equals(toProduct.getPackType())) {
             throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
-                    "Product pack type " + toProduct.getPackType() + " does not match to pack type " + toPackType);
+                    String.format(ErrorMessages.PACK_TYPE_MISMATCH_TO, toProduct.getPackType(), toPackType));
         }
 
         PackConversionDto conversion = productCatalogClient
                 .getPackConversion(skuId, new PackConversionDto.PackConversionQuery(fromPackType, toPackType))
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PACK_CONVERSION_NOT_FOUND,
-                        "Pack conversion not found for sku " + skuId + " from " + fromPackType + " to " + toPackType));
+                        String.format(ErrorMessages.PACK_CONVERSION_NOT_FOUND, skuId, fromPackType, toPackType)));
 
         int convertedQuantity = calculateConvertedQuantity(quantityToConvert, conversion.getConversionFactor());
 
@@ -155,19 +155,18 @@ public class InventoryService {
         PackType packType = PackType.valueOf(product.getPackType());
         Inventory inventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, state, packType)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        "No inventory found for product " + productId + " in state " + state + " with pack type " + packType));
+                        String.format(ErrorMessages.INVENTORY_NOT_FOUND_WITH_STATE, productId, state, packType)));
 
         if (inventory.getQuantity() < quantity) {
             throw new InventoryException(InventoryErrorCode.INSUFFICIENT_QUANTITY,
-                    "Insufficient quantity for product " + productId + " in " + state
-                            + " state. Available: " + inventory.getQuantity() + ", Requested: " + quantity);
+                    String.format(ErrorMessages.INSUFFICIENT_QUANTITY_WITH_STATE, productId, state, inventory.getQuantity(), quantity));
         }
 
         if ("COMBO".equals(product.getType())) {
             List<ComboProductDto> components = productCatalogClient.getComboProduct(productId);
             if (components.isEmpty()) {
                 throw new InventoryException(InventoryErrorCode.COMBO_DEFINITION_NOT_FOUND,
-                        "Combo definition not found for product ID: " + productId);
+                        String.format(ErrorMessages.COMBO_DEFINITION_NOT_FOUND, productId));
             }
 
             for (ComboProductDto component : components) {
@@ -177,7 +176,7 @@ public class InventoryService {
 
                 ProductDto componentProduct = productCatalogClient.getProduct(componentId)
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                                "Component product not found with ID: " + componentId));
+                                String.format(ErrorMessages.COMPONENT_PRODUCT_NOT_FOUND_WITH_ID, componentId)));
 
                 checkSufficiencyRecursive(componentId, state, componentQuantity, componentProduct);
             }
@@ -192,7 +191,7 @@ public class InventoryService {
             List<ComboProductDto> components = productCatalogClient.getComboProduct(productId);
             if (components.isEmpty()) {
                 throw new InventoryException(InventoryErrorCode.COMBO_DEFINITION_NOT_FOUND,
-                        "Combo definition not found for product ID: " + productId);
+                        String.format(ErrorMessages.COMBO_DEFINITION_NOT_FOUND, productId));
             }
 
             for (ComboProductDto component : components) {
@@ -202,7 +201,7 @@ public class InventoryService {
 
                 ProductDto componentProduct = productCatalogClient.getProduct(componentId)
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                                "Component product not found with ID: " + componentId));
+                                String.format(ErrorMessages.COMPONENT_PRODUCT_NOT_FOUND_WITH_ID, componentId)));
 
                 executeMoveRecursive(componentId, fromState, toState, componentQuantity, componentProduct);
             }
@@ -212,7 +211,7 @@ public class InventoryService {
     private void moveSingleInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantityToMove, PackType packType) {
         Inventory fromInventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, fromState, packType)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        "No inventory found for product " + productId + " in state " + fromState + " with pack type " + packType));
+                        String.format(ErrorMessages.INVENTORY_NOT_FOUND_WITH_STATE, productId, fromState, packType)));
 
         fromInventory.setQuantity(fromInventory.getQuantity() - quantityToMove);
         inventoryRepository.save(fromInventory);
@@ -232,7 +231,7 @@ public class InventoryService {
     private void validateTransition(InventoryState fromState, InventoryState toState) {
         if (fromState == InventoryState.COMPLETE) {
             throw new InventoryException(InventoryErrorCode.INVALID_STATE_TRANSITION,
-                    "Cannot move inventory from COMPLETE state — it is a terminal state");
+                    ErrorMessages.COMPLETE_STATE_TERMINAL);
         }
 
         boolean valid = (fromState == InventoryState.AVAILABLE && toState == InventoryState.ALLOCATED)
@@ -241,20 +240,19 @@ public class InventoryService {
 
         if (!valid) {
             throw new InventoryException(InventoryErrorCode.INVALID_STATE_TRANSITION,
-                    "Invalid state transition from " + fromState + " to " + toState
-                            + ". Allowed: AVAILABLE→ALLOCATED, ALLOCATED→COMPLETE, ALLOCATED→AVAILABLE");
+                    String.format(ErrorMessages.INVALID_STATE_TRANSITION, fromState, toState));
         }
     }
 
     private int calculateConvertedQuantity(int quantityToConvert, int conversionFactor) {
         if (conversionFactor <= 0) {
             throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
-                    "Conversion factor must be positive");
+                    ErrorMessages.CONVERSION_FACTOR_POSITIVE);
         }
         long converted = (long) quantityToConvert * conversionFactor;
         if (converted > Integer.MAX_VALUE) {
             throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
-                    "Converted quantity exceeds supported range");
+                    ErrorMessages.CONVERTED_QUANTITY_EXCEEDS_RANGE);
         }
         return (int) converted;
     }
@@ -263,19 +261,18 @@ public class InventoryService {
         PackType packType = PackType.valueOf(product.getPackType());
         Inventory inventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, InventoryState.AVAILABLE, packType)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        "No inventory found for product " + productId + " in AVAILABLE state with pack type " + packType));
+                        String.format(ErrorMessages.INVENTORY_NOT_FOUND_AVAILABLE, productId, packType)));
 
         if (inventory.getQuantity() < quantity) {
             throw new InventoryException(InventoryErrorCode.INSUFFICIENT_QUANTITY,
-                    "Insufficient quantity for product " + productId + " in AVAILABLE state. Available: "
-                            + inventory.getQuantity() + ", Requested: " + quantity);
+                    String.format(ErrorMessages.INSUFFICIENT_QUANTITY_AVAILABLE, productId, inventory.getQuantity(), quantity));
         }
 
         if ("COMBO".equals(product.getType())) {
             List<ComboProductDto> components = productCatalogClient.getComboProduct(productId);
             if (components.isEmpty()) {
                 throw new InventoryException(InventoryErrorCode.COMBO_DEFINITION_NOT_FOUND,
-                        "Combo definition not found for product ID: " + productId);
+                        String.format(ErrorMessages.COMBO_DEFINITION_NOT_FOUND, productId));
             }
 
             for (ComboProductDto component : components) {
@@ -285,12 +282,11 @@ public class InventoryService {
 
                 ProductDto componentProduct = productCatalogClient.getProduct(componentId)
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                                "Component product not found with ID: " + componentId));
+                                String.format(ErrorMessages.COMPONENT_PRODUCT_NOT_FOUND_WITH_ID, componentId)));
 
                 if (!fromPackType.name().equals(componentProduct.getPackType())) {
                     throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
-                            "Component product pack type " + componentProduct.getPackType()
-                                    + " does not match from pack type " + fromPackType);
+                            String.format(ErrorMessages.COMPONENT_PACK_TYPE_MISMATCH, componentProduct.getPackType(), fromPackType));
                 }
 
                 checkConversionSufficiencyRecursive(componentId, componentQuantity, componentProduct, fromPackType);
@@ -306,7 +302,7 @@ public class InventoryService {
             List<ComboProductDto> components = productCatalogClient.getComboProduct(fromProductId);
             if (components.isEmpty()) {
                 throw new InventoryException(InventoryErrorCode.COMBO_DEFINITION_NOT_FOUND,
-                        "Combo definition not found for product ID: " + fromProductId);
+                        String.format(ErrorMessages.COMBO_DEFINITION_NOT_FOUND, fromProductId));
             }
 
             for (ComboProductDto component : components) {
@@ -316,24 +312,23 @@ public class InventoryService {
 
                 ProductDto componentFromProduct = productCatalogClient.getProduct(componentId)
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                                "Component product not found with ID: " + componentId));
+                                String.format(ErrorMessages.COMPONENT_PRODUCT_NOT_FOUND_WITH_ID, componentId)));
 
                 PackConversionDto componentConversion = productCatalogClient
                         .getPackConversion(componentFromProduct.getSkuId(), new PackConversionDto.PackConversionQuery(fromPackType, toPackType))
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PACK_CONVERSION_NOT_FOUND,
-                                "Pack conversion not found for sku " + componentFromProduct.getSkuId() + " from " + fromPackType + " to " + toPackType));
+                                String.format(ErrorMessages.PACK_CONVERSION_NOT_FOUND, componentFromProduct.getSkuId(), fromPackType, toPackType)));
 
                 int componentConvertedQuantity = calculateConvertedQuantity(componentQuantity, componentConversion.getConversionFactor());
 
                 if (!fromPackType.name().equals(componentFromProduct.getPackType())) {
                     throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
-                            "Component product pack type " + componentFromProduct.getPackType()
-                                    + " does not match from pack type " + fromPackType);
+                            String.format(ErrorMessages.COMPONENT_PACK_TYPE_MISMATCH, componentFromProduct.getPackType(), fromPackType));
                 }
 
                 ProductDto componentToProduct = productCatalogClient.getProductBySkuIdAndPackType(componentFromProduct.getSkuId(), toPackType)
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
-                                "Component product not found with sku: " + componentFromProduct.getSkuId() + " and pack type: " + toPackType));
+                                String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_SKU_AND_PACK_TYPE, componentFromProduct.getSkuId(), toPackType)));
 
                 executeConversionRecursive(componentId, componentToProduct.getId(), fromPackType, toPackType,
                         componentQuantity, componentConvertedQuantity, componentFromProduct);
@@ -345,7 +340,7 @@ public class InventoryService {
                                  Integer quantityToConvert, Integer convertedQuantity) {
         Inventory fromInventory = inventoryRepository.findByProductIdAndStateAndPackType(fromProductId, InventoryState.AVAILABLE, fromPackType)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
-                        "No inventory found for product " + fromProductId + " in AVAILABLE state with pack type " + fromPackType));
+                        String.format(ErrorMessages.INVENTORY_NOT_FOUND_AVAILABLE, fromProductId, fromPackType)));
 
         fromInventory.setQuantity(fromInventory.getQuantity() - quantityToConvert);
         inventoryRepository.save(fromInventory);

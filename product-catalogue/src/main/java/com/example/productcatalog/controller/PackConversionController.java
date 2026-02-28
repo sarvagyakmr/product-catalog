@@ -1,7 +1,7 @@
 package com.example.productcatalog.controller;
 
+import com.example.commons.enums.PackType;
 import com.example.productcatalog.entity.PackConversion;
-import com.example.productcatalog.enums.PackType;
 import com.example.productcatalog.repository.PackConversionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
