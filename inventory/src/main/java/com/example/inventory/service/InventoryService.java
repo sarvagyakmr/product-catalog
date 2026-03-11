@@ -77,14 +77,14 @@ public class InventoryService {
 
     private Inventory createSingleInventory(Long productId, Integer quantity, ProductDto product) {
         PackType packType = PackType.valueOf(product.getPackType());
-        Optional<Inventory> existingInventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, InventoryState.AVAILABLE, packType);
+        Optional<Inventory> existingInventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, InventoryState.RECEIVED, packType);
         if (existingInventory.isPresent()) {
             Inventory inventory = existingInventory.get();
             inventory.setQuantity(inventory.getQuantity() + quantity);
             return inventoryRepository.save(inventory);
         }
 
-        Inventory inventory = new Inventory(productId, packType, quantity, InventoryState.AVAILABLE);
+        Inventory inventory = new Inventory(productId, packType, quantity, InventoryState.RECEIVED);
         inventory.setId(null);
         return inventoryRepository.save(inventory);
     }
@@ -236,7 +236,8 @@ public class InventoryService {
 
         boolean valid = (fromState == InventoryState.AVAILABLE && toState == InventoryState.ALLOCATED)
                 || (fromState == InventoryState.ALLOCATED && toState == InventoryState.COMPLETE)
-                || (fromState == InventoryState.ALLOCATED && toState == InventoryState.AVAILABLE);
+                || (fromState == InventoryState.ALLOCATED && toState == InventoryState.AVAILABLE)
+                || (fromState == InventoryState.RECEIVED && toState == InventoryState.AVAILABLE);
 
         if (!valid) {
             throw new InventoryException(InventoryErrorCode.INVALID_STATE_TRANSITION,

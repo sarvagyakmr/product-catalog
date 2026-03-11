@@ -17,6 +17,7 @@
         <module>commons</module>
         <module>product-catalogue</module>
         <module>inventory</module>
+        <module>order-management</module>
     </modules>
 
     <properties>
