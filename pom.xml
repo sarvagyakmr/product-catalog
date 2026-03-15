@@ -18,6 +18,7 @@
         <module>product-catalogue</module>
         <module>inventory</module>
         <module>order-management</module>
+        <module>warehouse-management</module>
     </modules>
 
     <properties>

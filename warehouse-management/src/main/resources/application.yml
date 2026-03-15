@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: warehouse-management
+
+  datasource:
+    url: jdbc:h2:mem:warehousemanagementdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+server:
+  port: 8083
+
+logging:
+  level:
+    org.springframework.jdbc: DEBUG
+    com.example.warehousemanagement: DEBUG
+
+product:
+  catalog:
+    url: http://localhost:8080
+
+order:
+  management:
+    url: http://localhost:8082
+
+inventory:
+  service:
+    url: http://localhost:8081
