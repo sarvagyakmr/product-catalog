@@ -63,9 +63,6 @@ public class ItemService {
             throw new IllegalStateException("Item can only be added to a box of type INWARD");
         }
 
-        // Update item status to INWARD
-        item.setStatus(ItemStatus.INWARD);
-        itemRepository.save(item);
 
         // Create BoxItem association
         BoxItem boxItem = new BoxItem(request.getItemId(), request.getBoxId());
@@ -94,8 +91,8 @@ public class ItemService {
             Long productId = item.getProductId();
             productQuantities.merge(productId, 1, Integer::sum);
             
-            // Update item status to LIVE
-            item.setStatus(ItemStatus.LIVE);
+            // Update item status to INWARD
+            item.setStatus(ItemStatus.INWARD);
             itemRepository.save(item);
         }
 
