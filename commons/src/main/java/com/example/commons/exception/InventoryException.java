@@ -21,6 +21,7 @@ public class InventoryException extends RuntimeException {
         COMBO_DEFINITION_NOT_FOUND,
         PACK_CONVERSION_NOT_FOUND,
         INVALID_PACK_CONVERSION,
-        PRODUCT_LOOKUP_FAILED
+        PRODUCT_LOOKUP_FAILED,
+        INVALID_REQUEST
     }
 }

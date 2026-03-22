@@ -37,7 +37,10 @@ public class ItemService {
     }
 
     public Item createItem(ItemCreateRequest request) {
-        Item item = new Item(request.getProductId(), ItemStatus.CREATED);
+        if (request.getWarehouseId() == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
+        Item item = new Item(request.getProductId(), ItemStatus.CREATED, request.getWarehouseId());
         return itemRepository.save(item);
     }
 
@@ -97,8 +100,9 @@ public class ItemService {
         }
 
         // Send inventory updates to inventory service for each product
+        Long warehouseId = box.getWarehouseId();
         for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
-            inventoryServiceClient.updateInventory(entry.getKey(), entry.getValue());
+            inventoryServiceClient.updateInventory(entry.getKey(), entry.getValue(), warehouseId);
         }
     }
 
@@ -142,9 +146,10 @@ public class ItemService {
         }
 
         // Send inventory move updates (RECEIVED -> AVAILABLE) for items that were INWARD
+        Long warehouseId = box.getWarehouseId();
         for (Map.Entry<Long, Integer> entry : inwardProductQuantities.entrySet()) {
             // Move inventory from RECEIVED to AVAILABLE
-            inventoryServiceClient.moveInventory(entry.getKey(), InventoryState.RECEIVED, InventoryState.AVAILABLE, entry.getValue());
+            inventoryServiceClient.moveInventory(entry.getKey(), InventoryState.RECEIVED, InventoryState.AVAILABLE, entry.getValue(), warehouseId);
         }
     }
 
@@ -214,8 +219,9 @@ public class ItemService {
         }
 
         // Send inventory updates for extra INWARD items that became LIVE
+        Long warehouseId = box.getWarehouseId();
         for (Map.Entry<Long, Integer> entry : extraInwardQuantities.entrySet()) {
-            inventoryServiceClient.updateInventory(entry.getKey(), entry.getValue());
+            inventoryServiceClient.updateInventory(entry.getKey(), entry.getValue(), warehouseId);
         }
     }
 }

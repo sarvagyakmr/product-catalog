@@ -1,15 +1,14 @@
 package com.example.ordermanagement.client;
 
 import com.example.commons.enums.InventoryState;
-import com.example.ordermanagement.dto.InventoryCreateRequest;
-import com.example.ordermanagement.dto.InventoryMoveRequest;
-import java.util.List;
+import com.example.commons.enums.PackType;
+import com.example.ordermanagement.dto.InventoryDto;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class InventoryServiceClient {
@@ -22,35 +21,84 @@ public class InventoryServiceClient {
         this.inventoryServiceUrl = inventoryServiceUrl;
     }
 
-    public List<?> getInventoryByProductId(Long productId) {
+    public Integer getAvailableQuantity(Long productId, PackType packType, Long warehouseId) {
         String url = inventoryServiceUrl + "/api/inventory/product/" + productId;
-        return restTemplate.getForObject(url, List.class);
-    }
-
-    public void createInventory(Long productId, Integer quantity) {
-        String url = inventoryServiceUrl + "/api/inventory";
-        restTemplate.postForEntity(url, new InventoryCreateRequest(productId, quantity), Void.class);
-    }
-
-    public void moveInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantity) {
-        String url = inventoryServiceUrl + "/api/inventory/move";
-        restTemplate.postForEntity(url, new InventoryMoveRequest(productId, fromState, toState, quantity), Void.class);
-    }
-
-    public void updateReceivedInventory(Long productId, Integer quantity) {
-        List<?> inventories = getInventoryByProductId(productId);
-        boolean hasReceived = inventories != null && inventories.stream().anyMatch(item -> {
-            if (item instanceof java.util.Map<?, ?> map) {
-                Object state = map.get("state");
-                return InventoryState.RECEIVED.name().equals(String.valueOf(state));
-            }
-            return false;
-        });
-
-        if (!hasReceived) {
-            createInventory(productId, quantity);
-        } else {
-            moveInventory(productId, InventoryState.RECEIVED, InventoryState.RECEIVED, quantity);
+        if (warehouseId != null) {
+            url += "?warehouseId=" + warehouseId;
         }
+        try {
+            InventoryDto[] inventoryArray = restTemplate.getForObject(url, InventoryDto[].class);
+            if (inventoryArray != null) {
+                return Arrays.stream(inventoryArray)
+                    .filter(inv -> inv.getState() == InventoryState.AVAILABLE && inv.getPackType() == packType)
+                    .map(InventoryDto::getQuantity)
+                    .reduce(0, Integer::sum);
+            }
+        } catch (Exception e) {
+            return 0;
+        }
+        return 0;
+    }
+
+    public void updateReceivedInventory(Long productId, Integer quantity, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
+        CreateInventoryRequest request = new CreateInventoryRequest(productId, quantity, warehouseId);
+        restTemplate.postForObject(inventoryServiceUrl + "/api/inventory", request, Object.class);
+    }
+
+    public void allocateInventory(Long productId, Integer quantity, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
+        MoveInventoryRequest request = new MoveInventoryRequest(productId, InventoryState.AVAILABLE, InventoryState.ALLOCATED, quantity, warehouseId);
+        restTemplate.postForObject(inventoryServiceUrl + "/api/inventory/move", request, Object.class);
+    }
+
+    private static class CreateInventoryRequest {
+        private Long productId;
+        private Integer quantity;
+        private Long warehouseId;
+
+        public CreateInventoryRequest(Long productId, Integer quantity, Long warehouseId) {
+            this.productId = productId;
+            this.quantity = quantity;
+            this.warehouseId = warehouseId;
+        }
+
+        public Long getProductId() { return productId; }
+        public void setProductId(Long productId) { this.productId = productId; }
+        public Integer getQuantity() { return quantity; }
+        public void setQuantity(Integer quantity) { this.quantity = quantity; }
+        public Long getWarehouseId() { return warehouseId; }
+        public void setWarehouseId(Long warehouseId) { this.warehouseId = warehouseId; }
+    }
+
+    private static class MoveInventoryRequest {
+        private Long productId;
+        private InventoryState fromState;
+        private InventoryState toState;
+        private Integer quantity;
+        private Long warehouseId;
+
+        public MoveInventoryRequest(Long productId, InventoryState fromState, InventoryState toState, Integer quantity, Long warehouseId) {
+            this.productId = productId;
+            this.fromState = fromState;
+            this.toState = toState;
+            this.quantity = quantity;
+            this.warehouseId = warehouseId;
+        }
+
+        public Long getProductId() { return productId; }
+        public void setProductId(Long productId) { this.productId = productId; }
+        public InventoryState getFromState() { return fromState; }
+        public void setFromState(InventoryState fromState) { this.fromState = fromState; }
+        public InventoryState getToState() { return toState; }
+        public void setToState(InventoryState toState) { this.toState = toState; }
+        public Integer getQuantity() { return quantity; }
+        public void setQuantity(Integer quantity) { this.quantity = quantity; }
+        public Long getWarehouseId() { return warehouseId; }
+        public void setWarehouseId(Long warehouseId) { this.warehouseId = warehouseId; }
     }
 }

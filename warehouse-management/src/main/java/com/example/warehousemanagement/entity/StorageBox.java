@@ -21,6 +21,9 @@ public class StorageBox {
     @Column("LOCATION_ID")
     private Long locationId;
 
+    @Column("WAREHOUSE_ID")
+    private Long warehouseId;
+
     public StorageBox() {
     }
 
@@ -33,6 +36,13 @@ public class StorageBox {
         this.type = type;
         this.gateEntryId = gateEntryId;
         this.locationId = locationId;
+    }
+
+    public StorageBox(BoxType type, Long gateEntryId, Long locationId, Long warehouseId) {
+        this.type = type;
+        this.gateEntryId = gateEntryId;
+        this.locationId = locationId;
+        this.warehouseId = warehouseId;
     }
 
     public Long getId() {
@@ -65,5 +75,13 @@ public class StorageBox {
 
     public void setLocationId(Long locationId) {
         this.locationId = locationId;
+    }
+
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Long warehouseId) {
+        this.warehouseId = warehouseId;
     }
 }

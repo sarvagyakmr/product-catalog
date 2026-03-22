@@ -29,19 +29,22 @@ public class InventoryService {
     }
 
     @Transactional
-    public Inventory createInventory(Long productId, Integer quantity) {
+    public Inventory createInventory(Long productId, Integer quantity, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
+        }
         ProductDto product = productCatalogClient.getProduct(productId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
                         String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_ID, productId)));
 
         if ("COMBO".equals(product.getType())) {
-            createComboInventory(productId, quantity, PackType.valueOf(product.getPackType()));
+            createComboInventory(productId, quantity, PackType.valueOf(product.getPackType()), warehouseId);
         }
 
-        return createSingleInventory(productId, quantity, product);
+        return createSingleInventory(productId, quantity, product, warehouseId);
     }
 
-    private void createComboInventory(Long comboId, Integer quantity, PackType comboPackType) {
+    private void createComboInventory(Long comboId, Integer quantity, PackType comboPackType, Long warehouseId) {
         List<ComboProductDto> components = productCatalogClient.getComboProduct(comboId);
         if (components.isEmpty()) {
             throw new InventoryException(InventoryErrorCode.COMBO_DEFINITION_NOT_FOUND,
@@ -71,26 +74,29 @@ public class InventoryService {
                 componentConvertedQuantity = calculateConvertedQuantity(componentQuantity, conversion.getConversionFactor());
             }
 
-            createInventory(componentId, componentConvertedQuantity);
+            createInventory(componentId, componentConvertedQuantity, warehouseId);
         }
     }
 
-    private Inventory createSingleInventory(Long productId, Integer quantity, ProductDto product) {
+    private Inventory createSingleInventory(Long productId, Integer quantity, ProductDto product, Long warehouseId) {
         PackType packType = PackType.valueOf(product.getPackType());
-        Optional<Inventory> existingInventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, InventoryState.RECEIVED, packType);
+        Optional<Inventory> existingInventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, InventoryState.RECEIVED, packType, warehouseId);
         if (existingInventory.isPresent()) {
             Inventory inventory = existingInventory.get();
             inventory.setQuantity(inventory.getQuantity() + quantity);
             return inventoryRepository.save(inventory);
         }
 
-        Inventory inventory = new Inventory(productId, packType, quantity, InventoryState.RECEIVED);
+        Inventory inventory = new Inventory(productId, packType, quantity, InventoryState.RECEIVED, warehouseId);
         inventory.setId(null);
         return inventoryRepository.save(inventory);
     }
 
     @Transactional
-    public void moveInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantityToMove) {
+    public void moveInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantityToMove, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
+        }
         ProductDto product = productCatalogClient.getProduct(productId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
                         String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_ID, productId)));
@@ -103,14 +109,17 @@ public class InventoryService {
         }
 
         // 1. Validation Phase - check all before executing any move
-        checkSufficiencyRecursive(productId, fromState, quantityToMove, product);
+        checkSufficiencyRecursive(productId, fromState, quantityToMove, product, warehouseId);
 
         // 2. Execution Phase - move all atomically
-        executeMoveRecursive(productId, fromState, toState, quantityToMove, product);
+        executeMoveRecursive(productId, fromState, toState, quantityToMove, product, warehouseId);
     }
 
     @Transactional
-    public void convertInventory(String skuId, PackType fromPackType, PackType toPackType, Integer quantityToConvert) {
+    public void convertInventory(String skuId, PackType fromPackType, PackType toPackType, Integer quantityToConvert, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
+        }
         if (fromPackType == toPackType) {
             throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
                     ErrorMessages.PACK_CONVERSION_SAME_TYPE);
@@ -146,14 +155,14 @@ public class InventoryService {
 
         int convertedQuantity = calculateConvertedQuantity(quantityToConvert, conversion.getConversionFactor());
 
-        checkConversionSufficiencyRecursive(fromProduct.getId(), quantityToConvert, fromProduct, fromPackType);
+        checkConversionSufficiencyRecursive(fromProduct.getId(), quantityToConvert, fromProduct, fromPackType, warehouseId);
         executeConversionRecursive(fromProduct.getId(), toProduct.getId(), fromPackType, toPackType,
-                quantityToConvert, convertedQuantity, fromProduct);
+                quantityToConvert, convertedQuantity, fromProduct, warehouseId);
     }
 
-    private void checkSufficiencyRecursive(Long productId, InventoryState state, Integer quantity, ProductDto product) {
+    private void checkSufficiencyRecursive(Long productId, InventoryState state, Integer quantity, ProductDto product, Long warehouseId) {
         PackType packType = PackType.valueOf(product.getPackType());
-        Inventory inventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, state, packType)
+        Inventory inventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, state, packType, warehouseId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.format(ErrorMessages.INVENTORY_NOT_FOUND_WITH_STATE, productId, state, packType)));
 
@@ -178,14 +187,14 @@ public class InventoryService {
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
                                 String.format(ErrorMessages.COMPONENT_PRODUCT_NOT_FOUND_WITH_ID, componentId)));
 
-                checkSufficiencyRecursive(componentId, state, componentQuantity, componentProduct);
+                checkSufficiencyRecursive(componentId, state, componentQuantity, componentProduct, warehouseId);
             }
         }
     }
 
-    private void executeMoveRecursive(Long productId, InventoryState fromState, InventoryState toState, Integer quantity, ProductDto product) {
+    private void executeMoveRecursive(Long productId, InventoryState fromState, InventoryState toState, Integer quantity, ProductDto product, Long warehouseId) {
         PackType packType = PackType.valueOf(product.getPackType());
-        moveSingleInventory(productId, fromState, toState, quantity, packType);
+        moveSingleInventory(productId, fromState, toState, quantity, packType, warehouseId);
 
         if ("COMBO".equals(product.getType())) {
             List<ComboProductDto> components = productCatalogClient.getComboProduct(productId);
@@ -203,26 +212,26 @@ public class InventoryService {
                         .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
                                 String.format(ErrorMessages.COMPONENT_PRODUCT_NOT_FOUND_WITH_ID, componentId)));
 
-                executeMoveRecursive(componentId, fromState, toState, componentQuantity, componentProduct);
+                executeMoveRecursive(componentId, fromState, toState, componentQuantity, componentProduct, warehouseId);
             }
         }
     }
 
-    private void moveSingleInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantityToMove, PackType packType) {
-        Inventory fromInventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, fromState, packType)
+    private void moveSingleInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantityToMove, PackType packType, Long warehouseId) {
+        Inventory fromInventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, fromState, packType, warehouseId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.format(ErrorMessages.INVENTORY_NOT_FOUND_WITH_STATE, productId, fromState, packType)));
 
         fromInventory.setQuantity(fromInventory.getQuantity() - quantityToMove);
         inventoryRepository.save(fromInventory);
 
-        Optional<Inventory> toInventoryOpt = inventoryRepository.findByProductIdAndStateAndPackType(productId, toState, packType);
+        Optional<Inventory> toInventoryOpt = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, toState, packType, warehouseId);
         if (toInventoryOpt.isPresent()) {
             Inventory toInventory = toInventoryOpt.get();
             toInventory.setQuantity(toInventory.getQuantity() + quantityToMove);
             inventoryRepository.save(toInventory);
         } else {
-            Inventory toInventory = new Inventory(productId, packType, quantityToMove, toState);
+            Inventory toInventory = new Inventory(productId, packType, quantityToMove, toState, warehouseId);
             toInventory.setId(null);
             inventoryRepository.save(toInventory);
         }
@@ -258,9 +267,9 @@ public class InventoryService {
         return (int) converted;
     }
 
-    private void checkConversionSufficiencyRecursive(Long productId, Integer quantity, ProductDto product, PackType fromPackType) {
+    private void checkConversionSufficiencyRecursive(Long productId, Integer quantity, ProductDto product, PackType fromPackType, Long warehouseId) {
         PackType packType = PackType.valueOf(product.getPackType());
-        Inventory inventory = inventoryRepository.findByProductIdAndStateAndPackType(productId, InventoryState.AVAILABLE, packType)
+        Inventory inventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, InventoryState.AVAILABLE, packType, warehouseId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.format(ErrorMessages.INVENTORY_NOT_FOUND_AVAILABLE, productId, packType)));
 
@@ -290,14 +299,14 @@ public class InventoryService {
                             String.format(ErrorMessages.COMPONENT_PACK_TYPE_MISMATCH, componentProduct.getPackType(), fromPackType));
                 }
 
-                checkConversionSufficiencyRecursive(componentId, componentQuantity, componentProduct, fromPackType);
+                checkConversionSufficiencyRecursive(componentId, componentQuantity, componentProduct, fromPackType, warehouseId);
             }
         }
     }
 
     private void executeConversionRecursive(Long fromProductId, Long toProductId, PackType fromPackType, PackType toPackType,
-                                            Integer quantityToConvert, Integer convertedQuantity, ProductDto fromProduct) {
-        applyConversion(fromProductId, toProductId, fromPackType, toPackType, quantityToConvert, convertedQuantity);
+                                            Integer quantityToConvert, Integer convertedQuantity, ProductDto fromProduct, Long warehouseId) {
+        applyConversion(fromProductId, toProductId, fromPackType, toPackType, quantityToConvert, convertedQuantity, warehouseId);
 
         if ("COMBO".equals(fromProduct.getType())) {
             List<ComboProductDto> components = productCatalogClient.getComboProduct(fromProductId);
@@ -332,28 +341,28 @@ public class InventoryService {
                                 String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_SKU_AND_PACK_TYPE, componentFromProduct.getSkuId(), toPackType)));
 
                 executeConversionRecursive(componentId, componentToProduct.getId(), fromPackType, toPackType,
-                        componentQuantity, componentConvertedQuantity, componentFromProduct);
+                        componentQuantity, componentConvertedQuantity, componentFromProduct, warehouseId);
             }
         }
     }
 
     private void applyConversion(Long fromProductId, Long toProductId, PackType fromPackType, PackType toPackType,
-                                 Integer quantityToConvert, Integer convertedQuantity) {
-        Inventory fromInventory = inventoryRepository.findByProductIdAndStateAndPackType(fromProductId, InventoryState.AVAILABLE, fromPackType)
+                                 Integer quantityToConvert, Integer convertedQuantity, Long warehouseId) {
+        Inventory fromInventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(fromProductId, InventoryState.AVAILABLE, fromPackType, warehouseId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.INVENTORY_NOT_FOUND,
                         String.format(ErrorMessages.INVENTORY_NOT_FOUND_AVAILABLE, fromProductId, fromPackType)));
 
         fromInventory.setQuantity(fromInventory.getQuantity() - quantityToConvert);
         inventoryRepository.save(fromInventory);
 
-        Inventory toInventory = inventoryRepository.findByProductIdAndStateAndPackType(toProductId, InventoryState.AVAILABLE, toPackType)
-                .orElse(null);
+        Optional<Inventory> toInventoryOpt = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(toProductId, InventoryState.AVAILABLE, toPackType, warehouseId);
 
-        if (toInventory != null) {
+        if (toInventoryOpt.isPresent()) {
+            Inventory toInventory = toInventoryOpt.get();
             toInventory.setQuantity(toInventory.getQuantity() + convertedQuantity);
             inventoryRepository.save(toInventory);
         } else {
-            Inventory created = new Inventory(toProductId, toPackType, convertedQuantity, InventoryState.AVAILABLE);
+            Inventory created = new Inventory(toProductId, toPackType, convertedQuantity, InventoryState.AVAILABLE, warehouseId);
             created.setId(null);
             inventoryRepository.save(created);
         }
@@ -361,6 +370,29 @@ public class InventoryService {
 
     public List<Inventory> getInventoryByProductId(Long productId) {
         return inventoryRepository.findByProductId(productId);
+    }
+
+    public List<Inventory> getInventoryByProductIdAndWarehouseId(Long productId, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
+        }
+        return inventoryRepository.findByProductIdAndWarehouseId(productId, warehouseId);
+    }
+
+    public Integer getAvailableQuantity(Long productId, PackType packType, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
+        }
+        Optional<Inventory> inventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, InventoryState.AVAILABLE, packType, warehouseId);
+        return inventory.map(Inventory::getQuantity).orElse(0);
+    }
+
+    public Integer getAllocatedQuantity(Long productId, PackType packType, Long warehouseId) {
+        if (warehouseId == null) {
+            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
+        }
+        Optional<Inventory> inventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, InventoryState.ALLOCATED, packType, warehouseId);
+        return inventory.map(Inventory::getQuantity).orElse(0);
     }
 }
 

@@ -93,6 +93,7 @@ public class GlobalExceptionHandler {
             case PACK_CONVERSION_NOT_FOUND -> HttpStatus.NOT_FOUND;
             case INVALID_PACK_CONVERSION -> HttpStatus.UNPROCESSABLE_ENTITY;
             case PRODUCT_LOOKUP_FAILED -> HttpStatus.BAD_GATEWAY;
+            case INVALID_REQUEST -> HttpStatus.BAD_REQUEST;
         };
     }
 }

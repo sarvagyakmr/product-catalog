@@ -5,6 +5,7 @@ import com.example.warehousemanagement.enums.BoxType;
 public class StorageBoxCreateRequest {
     private BoxType type;
     private Long gateEntryId;
+    private Long warehouseId;
 
     public StorageBoxCreateRequest() {
     }
@@ -12,6 +13,12 @@ public class StorageBoxCreateRequest {
     public StorageBoxCreateRequest(BoxType type, Long gateEntryId) {
         this.type = type;
         this.gateEntryId = gateEntryId;
+    }
+
+    public StorageBoxCreateRequest(BoxType type, Long gateEntryId, Long warehouseId) {
+        this.type = type;
+        this.gateEntryId = gateEntryId;
+        this.warehouseId = warehouseId;
     }
 
     public BoxType getType() {
@@ -28,5 +35,13 @@ public class StorageBoxCreateRequest {
 
     public void setGateEntryId(Long gateEntryId) {
         this.gateEntryId = gateEntryId;
+    }
+
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Long warehouseId) {
+        this.warehouseId = warehouseId;
     }
 }

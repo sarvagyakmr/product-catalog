@@ -5,6 +5,7 @@ import com.example.ordermanagement.enums.Channel;
 public class InwardOrderCreateRequest {
     private String channelOrderId;
     private Channel channel;
+    private Long warehouseId;
 
     public InwardOrderCreateRequest() {
     }
@@ -23,5 +24,13 @@ public class InwardOrderCreateRequest {
 
     public void setChannel(Channel channel) {
         this.channel = channel;
+    }
+
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Long warehouseId) {
+        this.warehouseId = warehouseId;
     }
 }

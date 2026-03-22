@@ -1,45 +1,17 @@
-package com.example.inventory.entity;
+package com.example.ordermanagement.dto;
 
 import com.example.commons.enums.InventoryState;
 import com.example.commons.enums.PackType;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.Column;
-import org.springframework.data.relational.core.mapping.Table;
 
-@Table("INVENTORY")
-public class Inventory {
-
-    @Id
-    @Column("ID")
+public class InventoryDto {
     private Long id;
-
-    @Column("PRODUCT_ID")
     private Long productId;
-
-    @Column("PACK_TYPE")
     private PackType packType;
-
-    @Column("QUANTITY")
     private Integer quantity;
-
-    @Column("STATE")
     private InventoryState state;
-
-    @Column("WAREHOUSE_ID")
     private Long warehouseId;
 
-    public Inventory() {
-    }
-
-    public Inventory(Long productId, PackType packType, Integer quantity, InventoryState state, Long warehouseId) {
-        if (warehouseId == null) {
-            throw new IllegalArgumentException("Warehouse ID is required");
-        }
-        this.productId = productId;
-        this.packType = packType;
-        this.quantity = quantity;
-        this.state = state;
-        this.warehouseId = warehouseId;
+    public InventoryDto() {
     }
 
     public Long getId() {

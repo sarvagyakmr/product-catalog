@@ -25,6 +25,9 @@ public class InwardOrderController {
 
     @PostMapping
     public ResponseEntity<InwardOrder> createInwardOrder(@RequestBody InwardOrderCreateRequest request) {
+        if (request.getWarehouseId() == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
         InwardOrder created = inwardOrderService.createInwardOrder(request);
         return ResponseEntity.created(URI.create("/api/inward-orders/" + created.getId()))
             .body(created);

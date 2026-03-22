@@ -1,14 +1,14 @@
 package com.example.ordermanagement.entity;
 
 import com.example.ordermanagement.enums.Channel;
-import com.example.ordermanagement.enums.InwardOrderStatus;
+import com.example.ordermanagement.enums.OutwardOrderStatus;
 import java.time.OffsetDateTime;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-@Table("INWARD_ORDERS")
-public class InwardOrder {
+@Table("OUTWARD_ORDERS")
+public class OutwardOrder {
 
     @Id
     @Column("ID")
@@ -20,31 +20,24 @@ public class InwardOrder {
     @Column("CHANNEL")
     private Channel channel;
 
+    @Column("WAREHOUSE_ID")
+    private Long warehouseId;
+
     @Column("TIMESTAMP")
     private OffsetDateTime timestamp;
 
     @Column("STATUS")
-    private InwardOrderStatus status;
+    private OutwardOrderStatus status;
 
-    @Column("WAREHOUSE_ID")
-    private Long warehouseId;
-
-    public InwardOrder() {
+    public OutwardOrder() {
     }
 
-    public InwardOrder(String channelOrderId, Channel channel, OffsetDateTime timestamp, InwardOrderStatus status) {
+    public OutwardOrder(String channelOrderId, Channel channel, Long warehouseId, OffsetDateTime timestamp, OutwardOrderStatus status) {
         this.channelOrderId = channelOrderId;
         this.channel = channel;
-        this.timestamp = timestamp;
-        this.status = status;
-    }
-
-    public InwardOrder(String channelOrderId, Channel channel, OffsetDateTime timestamp, InwardOrderStatus status, Long warehouseId) {
-        this.channelOrderId = channelOrderId;
-        this.channel = channel;
-        this.timestamp = timestamp;
-        this.status = status;
         this.warehouseId = warehouseId;
+        this.timestamp = timestamp;
+        this.status = status;
     }
 
     public Long getId() {
@@ -71,6 +64,14 @@ public class InwardOrder {
         this.channel = channel;
     }
 
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Long warehouseId) {
+        this.warehouseId = warehouseId;
+    }
+
     public OffsetDateTime getTimestamp() {
         return timestamp;
     }
@@ -79,19 +80,11 @@ public class InwardOrder {
         this.timestamp = timestamp;
     }
 
-    public InwardOrderStatus getStatus() {
+    public OutwardOrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(InwardOrderStatus status) {
+    public void setStatus(OutwardOrderStatus status) {
         this.status = status;
-    }
-
-    public Long getWarehouseId() {
-        return warehouseId;
-    }
-
-    public void setWarehouseId(Long warehouseId) {
-        this.warehouseId = warehouseId;
     }
 }

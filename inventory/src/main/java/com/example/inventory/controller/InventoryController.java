@@ -20,19 +20,25 @@ public class InventoryController {
 
     @PostMapping
     public ResponseEntity<Inventory> createInventory(@RequestBody CreateInventoryRequest request) {
-        Inventory inventory = inventoryService.createInventory(request.getProductId(), request.getQuantity());
+        if (request.getWarehouseId() == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
+        Inventory inventory = inventoryService.createInventory(request.getProductId(), request.getQuantity(), request.getWarehouseId());
         return new ResponseEntity<>(inventory, HttpStatus.CREATED);
     }
 
     @PostMapping("/move")
     public ResponseEntity<Void> moveInventory(@RequestBody MoveInventoryRequest request) {
-        inventoryService.moveInventory(request.getProductId(), request.getFromState(), request.getToState(), request.getQuantity());
+        inventoryService.moveInventory(request.getProductId(), request.getFromState(), request.getToState(), request.getQuantity(), request.getWarehouseId());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/convert")
     public ResponseEntity<Void> convertInventory(@RequestBody ConvertInventoryRequest request) {
-        inventoryService.convertInventory(request.getSkuId(), request.getFromPackType(), request.getToPackType(), request.getQuantity());
+        if (request.getWarehouseId() == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
+        inventoryService.convertInventory(request.getSkuId(), request.getFromPackType(), request.getToPackType(), request.getQuantity(), request.getWarehouseId());
         return ResponseEntity.ok().build();
     }
 
@@ -44,6 +50,7 @@ public class InventoryController {
     public static class CreateInventoryRequest {
         private Long productId;
         private Integer quantity;
+        private Long warehouseId;
 
         public Long getProductId() {
             return productId;
@@ -60,6 +67,14 @@ public class InventoryController {
         public void setQuantity(Integer quantity) {
             this.quantity = quantity;
         }
+
+        public Long getWarehouseId() {
+            return warehouseId;
+        }
+
+        public void setWarehouseId(Long warehouseId) {
+            this.warehouseId = warehouseId;
+        }
     }
 
     public static class MoveInventoryRequest {
@@ -67,6 +82,7 @@ public class InventoryController {
         private InventoryState fromState;
         private InventoryState toState;
         private Integer quantity;
+        private Long warehouseId;
 
         public Long getProductId() {
             return productId;
@@ -99,6 +115,14 @@ public class InventoryController {
         public void setQuantity(Integer quantity) {
             this.quantity = quantity;
         }
+
+        public Long getWarehouseId() {
+            return warehouseId;
+        }
+
+        public void setWarehouseId(Long warehouseId) {
+            this.warehouseId = warehouseId;
+        }
     }
 
     public static class ConvertInventoryRequest {
@@ -106,6 +130,7 @@ public class InventoryController {
         private PackType fromPackType;
         private PackType toPackType;
         private Integer quantity;
+        private Long warehouseId;
 
         public String getSkuId() {
             return skuId;
@@ -137,6 +162,14 @@ public class InventoryController {
 
         public void setQuantity(Integer quantity) {
             this.quantity = quantity;
+        }
+
+        public Long getWarehouseId() {
+            return warehouseId;
+        }
+
+        public void setWarehouseId(Long warehouseId) {
+            this.warehouseId = warehouseId;
         }
     }
 }

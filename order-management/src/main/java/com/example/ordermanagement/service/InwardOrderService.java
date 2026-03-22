@@ -18,11 +18,15 @@ public class InwardOrderService {
     }
 
     public InwardOrder createInwardOrder(InwardOrderCreateRequest request) {
+        if (request.getWarehouseId() == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
         InwardOrder inwardOrder = new InwardOrder(
             request.getChannelOrderId(),
             request.getChannel(),
             OffsetDateTime.now(),
-            InwardOrderStatus.CREATED
+            InwardOrderStatus.CREATED,
+            request.getWarehouseId()
         );
         return inwardOrderRepository.save(inwardOrder);
     }

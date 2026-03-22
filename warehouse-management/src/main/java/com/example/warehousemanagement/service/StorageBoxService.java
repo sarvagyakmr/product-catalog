@@ -17,7 +17,10 @@ public class StorageBoxService {
     }
 
     public StorageBox createStorageBox(StorageBoxCreateRequest request) {
-        StorageBox storageBox = new StorageBox(request.getType(), request.getGateEntryId());
+        if (request.getWarehouseId() == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
+        StorageBox storageBox = new StorageBox(request.getType(), request.getGateEntryId(), null, request.getWarehouseId());
         return storageBoxRepository.save(storageBox);
     }
 

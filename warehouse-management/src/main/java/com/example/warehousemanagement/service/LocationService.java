@@ -16,7 +16,10 @@ public class LocationService {
     }
 
     public Location createLocation(LocationCreateRequest request) {
-        Location location = new Location(request.getAisle(), request.getDisplayName());
+        if (request.getWarehouseId() == null) {
+            throw new IllegalArgumentException("Warehouse ID is required");
+        }
+        Location location = new Location(request.getAisle(), request.getDisplayName(), request.getWarehouseId());
         return locationRepository.save(location);
     }
 

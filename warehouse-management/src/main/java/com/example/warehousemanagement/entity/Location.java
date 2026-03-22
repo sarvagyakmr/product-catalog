@@ -17,12 +17,21 @@ public class Location {
     @Column("DISPLAY_NAME")
     private String displayName;
 
+    @Column("WAREHOUSE_ID")
+    private Long warehouseId;
+
     public Location() {
     }
 
     public Location(String aisle, String displayName) {
         this.aisle = aisle;
         this.displayName = displayName;
+    }
+
+    public Location(String aisle, String displayName, Long warehouseId) {
+        this.aisle = aisle;
+        this.displayName = displayName;
+        this.warehouseId = warehouseId;
     }
 
     public Long getId() {
@@ -47,5 +56,13 @@ public class Location {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public Long getWarehouseId() {
+        return warehouseId;
+    }
+
+    public void setWarehouseId(Long warehouseId) {
+        this.warehouseId = warehouseId;
     }
 }
