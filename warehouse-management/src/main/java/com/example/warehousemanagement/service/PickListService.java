@@ -105,4 +105,93 @@ public class PickListService {
             outwardOrderItemRepository.save(orderItem);
         }
     }
+
+    public Optional<PickList> getPickListById(Long id) {
+        return pickListRepository.findById(id);
+    }
+
+    @Transactional
+    public PickList pickItemForPickList(Long pickListId) {
+        // Find the picklist
+        PickList pickList = pickListRepository.findById(pickListId)
+            .orElseThrow(() -> new IllegalArgumentException("PickList not found with id: " + pickListId));
+
+        if (pickList.getStatus() != PickListStatus.PENDING) {
+            throw new IllegalStateException("PickList is not in PENDING state, current state: " + pickList.getStatus());
+        }
+
+        Long storageBoxId = pickList.getStorageBoxId();
+        Long orderId = pickList.getOrderId();
+        Long productId = pickList.getProductId();
+
+        // Find a LIVE item from the storage box
+        List<BoxItem> boxItems = boxItemRepository.findByBoxId(storageBoxId);
+        Item pickedItem = null;
+        for (BoxItem boxItem : boxItems) {
+            Optional<Item> itemOpt = itemRepository.findById(boxItem.getItemId());
+            if (itemOpt.isPresent() && itemOpt.get().getStatus() == ItemStatus.LIVE) {
+                pickedItem = itemOpt.get();
+                break;
+            }
+        }
+
+        if (pickedItem == null) {
+            throw new IllegalStateException("No LIVE item found in storage box for picklist: " + pickListId);
+        }
+
+        // Mark item as PICKED
+        pickedItem.setStatus(ItemStatus.PICKED);
+        itemRepository.save(pickedItem);
+
+        // Find the OutwardOrderItem and set the pickedItemId
+        List<OutwardOrderItem> orderItems = outwardOrderItemRepository.findByOrderId(orderId);
+        for (OutwardOrderItem orderItem : orderItems) {
+            if (orderItem.getProductId().equals(productId) && orderItem.getPickedItemId() == null) {
+                orderItem.setPickedItemId(pickedItem.getId());
+                outwardOrderItemRepository.save(orderItem);
+                break;
+            }
+        }
+
+        // Update picklist status to PICKED
+        pickList.setStatus(PickListStatus.PICKED);
+        return pickListRepository.save(pickList);
+    }
+
+    @Transactional
+    public void cancelPickListsForOrder(Long orderId) {
+        // Find all picklists for this order
+        List<PickList> pickLists = pickListRepository.findByOrderId(orderId);
+
+        for (PickList pickList : pickLists) {
+            if (pickList.getStatus() == PickListStatus.PICKED) {
+                // Item was already picked - mark as REMOVED and delete order item association
+                Long productId = pickList.getProductId();
+
+                // Find the OutwardOrderItem with this productId and pickedItemId
+                List<OutwardOrderItem> orderItems = outwardOrderItemRepository.findByOrderId(orderId);
+                for (OutwardOrderItem orderItem : orderItems) {
+                    if (orderItem.getProductId().equals(productId) && orderItem.getPickedItemId() != null) {
+                        // Mark the item as REMOVED
+                        Long pickedItemId = orderItem.getPickedItemId();
+                        Optional<Item> itemOpt = itemRepository.findById(pickedItemId);
+                        if (itemOpt.isPresent()) {
+                            Item item = itemOpt.get();
+                            item.setStatus(ItemStatus.REMOVED);
+                            itemRepository.save(item);
+                        }
+
+                        // Delete the order item association (set pickedItemId to null)
+                        orderItem.setPickedItemId(null);
+                        outwardOrderItemRepository.save(orderItem);
+                        break;
+                    }
+                }
+            }
+
+            // Update picklist status to CANCELLED
+            pickList.setStatus(PickListStatus.CANCELLED);
+            pickListRepository.save(pickList);
+        }
+    }
 }

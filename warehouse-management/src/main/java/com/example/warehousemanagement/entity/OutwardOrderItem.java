@@ -23,6 +23,9 @@ public class OutwardOrderItem {
     @Column("PICK_LIST_COUNT")
     private Integer pickListCount;
 
+    @Column("PICKED_ITEM_ID")
+    private Long pickedItemId;
+
     public OutwardOrderItem() {
     }
 
@@ -71,5 +74,13 @@ public class OutwardOrderItem {
 
     public void setPickListCount(Integer pickListCount) {
         this.pickListCount = pickListCount;
+    }
+
+    public Long getPickedItemId() {
+        return pickedItemId;
+    }
+
+    public void setPickedItemId(Long pickedItemId) {
+        this.pickedItemId = pickedItemId;
     }
 }

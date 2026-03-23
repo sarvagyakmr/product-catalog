@@ -1,7 +1,7 @@
 package com.example.warehousemanagement.service;
 
+import com.example.commons.dto.InventoryEventDto;
 import com.example.commons.enums.InventoryState;
-import com.example.warehousemanagement.client.InventoryServiceClient;
 import com.example.warehousemanagement.dto.AddItemToBoxRequest;
 import com.example.warehousemanagement.dto.CycleCountRequest;
 import com.example.warehousemanagement.dto.ItemCreateRequest;
@@ -27,13 +27,13 @@ public class ItemService {
     private final ItemRepository itemRepository;
     private final BoxItemRepository boxItemRepository;
     private final StorageBoxRepository storageBoxRepository;
-    private final InventoryServiceClient inventoryServiceClient;
+    private final RedisPublisher redisPublisher;
 
-    public ItemService(ItemRepository itemRepository, BoxItemRepository boxItemRepository, StorageBoxRepository storageBoxRepository, InventoryServiceClient inventoryServiceClient) {
+    public ItemService(ItemRepository itemRepository, BoxItemRepository boxItemRepository, StorageBoxRepository storageBoxRepository, RedisPublisher redisPublisher) {
         this.itemRepository = itemRepository;
         this.boxItemRepository = boxItemRepository;
         this.storageBoxRepository = storageBoxRepository;
-        this.inventoryServiceClient = inventoryServiceClient;
+        this.redisPublisher = redisPublisher;
     }
 
     public Item createItem(ItemCreateRequest request) {
@@ -102,7 +102,13 @@ public class ItemService {
         // Send inventory updates to inventory service for each product
         Long warehouseId = box.getWarehouseId();
         for (Map.Entry<Long, Integer> entry : productQuantities.entrySet()) {
-            inventoryServiceClient.updateInventory(entry.getKey(), entry.getValue(), warehouseId);
+            // Publish inventory create event to Redis
+            InventoryEventDto event = InventoryEventDto.createEvent(
+                entry.getKey(),
+                entry.getValue(),
+                warehouseId
+            );
+            redisPublisher.publishInventoryEvent(event);
         }
     }
 
@@ -148,8 +154,15 @@ public class ItemService {
         // Send inventory move updates (RECEIVED -> AVAILABLE) for items that were INWARD
         Long warehouseId = box.getWarehouseId();
         for (Map.Entry<Long, Integer> entry : inwardProductQuantities.entrySet()) {
-            // Move inventory from RECEIVED to AVAILABLE
-            inventoryServiceClient.moveInventory(entry.getKey(), InventoryState.RECEIVED, InventoryState.AVAILABLE, entry.getValue(), warehouseId);
+            // Publish inventory move event to Redis (RECEIVED -> AVAILABLE)
+            InventoryEventDto event = InventoryEventDto.moveEvent(
+                entry.getKey(),
+                InventoryState.RECEIVED,
+                InventoryState.AVAILABLE,
+                entry.getValue(),
+                warehouseId
+            );
+            redisPublisher.publishInventoryEvent(event);
         }
     }
 
@@ -221,7 +234,13 @@ public class ItemService {
         // Send inventory updates for extra INWARD items that became LIVE
         Long warehouseId = box.getWarehouseId();
         for (Map.Entry<Long, Integer> entry : extraInwardQuantities.entrySet()) {
-            inventoryServiceClient.updateInventory(entry.getKey(), entry.getValue(), warehouseId);
+            // Publish inventory create event to Redis
+            InventoryEventDto event = InventoryEventDto.createEvent(
+                entry.getKey(),
+                entry.getValue(),
+                warehouseId
+            );
+            redisPublisher.publishInventoryEvent(event);
         }
     }
 }

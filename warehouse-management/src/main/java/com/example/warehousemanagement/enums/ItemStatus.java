@@ -7,5 +7,6 @@ public enum ItemStatus {
     PICKED,
     PACKED,
     SHIPPED,
-    LOST
+    LOST,
+    REMOVED
 }
