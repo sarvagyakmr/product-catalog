@@ -1,6 +1,7 @@
 package com.example.warehousemanagement.client;
 
 import com.example.warehousemanagement.dto.OutwardOrderDto;
+import com.example.warehousemanagement.dto.OutwardOrderItemDto;
 import com.example.warehousemanagement.enums.OutwardOrderStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,25 @@ public class OrderManagementClient {
         try {
             OutwardOrderDto[] orders = restTemplate.getForObject(url, OutwardOrderDto[].class);
             return orders != null ? Arrays.asList(orders) : List.of();
+        } catch (Exception e) {
+            return List.of();
+        }
+    }
+
+    public OutwardOrderDto getOutwardOrderById(Long orderId) {
+        String url = orderManagementUrl + "/api/outward-orders/" + orderId;
+        try {
+            return restTemplate.getForObject(url, OutwardOrderDto.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public List<OutwardOrderItemDto> getOutwardOrderItems(Long orderId) {
+        String url = orderManagementUrl + "/api/outward-orders/" + orderId + "/items";
+        try {
+            OutwardOrderItemDto[] items = restTemplate.getForObject(url, OutwardOrderItemDto[].class);
+            return items != null ? Arrays.asList(items) : List.of();
         } catch (Exception e) {
             return List.of();
         }

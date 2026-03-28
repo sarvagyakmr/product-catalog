@@ -59,15 +59,22 @@ public class RedisConfig {
     }
 
     @Bean
+    public ChannelTopic picklistCreateTopic() {
+        return new ChannelTopic("picklist-create");
+    }
+
+    @Bean
     public RedisMessageListenerContainer redisMessageListenerContainer(
             RedisConnectionFactory connectionFactory,
             MessageListenerAdapter messageListenerAdapter,
             @Qualifier("allocatedOrdersTopic") ChannelTopic allocatedOrdersTopic,
-            @Qualifier("cancelledOrdersTopic") ChannelTopic cancelledOrdersTopic) {
+            @Qualifier("cancelledOrdersTopic") ChannelTopic cancelledOrdersTopic,
+            @Qualifier("picklistCreateTopic") ChannelTopic picklistCreateTopic) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(messageListenerAdapter, allocatedOrdersTopic);
         container.addMessageListener(messageListenerAdapter, cancelledOrdersTopic);
+        container.addMessageListener(messageListenerAdapter, picklistCreateTopic);
         return container;
     }
 

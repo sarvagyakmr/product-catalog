@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,14 +29,31 @@ public class PickListController {
     }
 
     @PostMapping("/{id}/pick")
-    public ResponseEntity<PickList> pickItemForPickList(@PathVariable("id") Long id) {
+    public ResponseEntity<PickList> pickItemForPickList(
+            @PathVariable("id") Long id,
+            @RequestBody PickItemRequest request) {
         try {
-            PickList updatedPickList = pickListService.pickItemForPickList(id);
+            PickList updatedPickList = pickListService.pickItemForPickList(id, request.getItemId());
             return ResponseEntity.ok(updatedPickList);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         } catch (IllegalStateException e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    public static class PickItemRequest {
+        private Long itemId;
+
+        public PickItemRequest() {
+        }
+
+        public Long getItemId() {
+            return itemId;
+        }
+
+        public void setItemId(Long itemId) {
+            this.itemId = itemId;
         }
     }
 }
