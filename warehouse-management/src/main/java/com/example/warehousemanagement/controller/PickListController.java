@@ -2,6 +2,7 @@ package com.example.warehousemanagement.controller;
 
 import com.example.warehousemanagement.entity.PickList;
 import com.example.warehousemanagement.service.PickListService;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,12 @@ public class PickListController {
 
     public PickListController(PickListService pickListService) {
         this.pickListService = pickListService;
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PickList>> getAllPickLists() {
+        List<PickList> pickLists = pickListService.getAllPickLists();
+        return ResponseEntity.ok(pickLists);
     }
 
     @GetMapping("/{id}")

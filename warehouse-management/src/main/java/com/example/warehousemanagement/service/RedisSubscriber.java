@@ -96,7 +96,7 @@ public class RedisSubscriber {
 
                 // Publish picklist create event for this item
                 PickListCreateEvent event = new PickListCreateEvent(
-                    dto.getId(),
+                    localOrder.getId(),
                     itemDto.getProductId(),
                     quantity
                 );

@@ -115,6 +115,10 @@ public class PickListService {
         }
     }
 
+    public List<PickList> getAllPickLists() {
+        return (List<PickList>) pickListRepository.findAll();
+    }
+
     public Optional<PickList> getPickListById(Long id) {
         return pickListRepository.findById(id);
     }
