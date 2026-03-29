@@ -1,16 +1,12 @@
 package com.example.productcatalog.entity;
 
+import com.example.commons.entity.BaseEntity;
 import com.example.commons.enums.PackType;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("PACK_CONVERSIONS")
-public class PackConversion {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class PackConversion extends BaseEntity {
 
     @Column("SKU_ID")
     private String skuId;
@@ -32,14 +28,6 @@ public class PackConversion {
         this.fromPackType = fromPackType;
         this.toPackType = toPackType;
         this.conversionFactor = conversionFactor;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getSkuId() {

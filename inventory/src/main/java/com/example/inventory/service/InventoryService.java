@@ -9,6 +9,7 @@ import com.example.commons.enums.InventoryState;
 import com.example.commons.enums.PackType;
 import com.example.commons.exception.InventoryException;
 import com.example.commons.exception.InventoryException.InventoryErrorCode;
+import com.example.commons.service.AbstractService;
 import com.example.inventory.entity.Inventory;
 import com.example.inventory.repository.InventoryRepository;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class InventoryService {
+public class InventoryService extends AbstractService {
 
     private final InventoryRepository inventoryRepository;
     private final ProductCatalogClient productCatalogClient;
@@ -30,9 +31,7 @@ public class InventoryService {
 
     @Transactional
     public Inventory createInventory(Long productId, Integer quantity, Long warehouseId) {
-        if (warehouseId == null) {
-            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
-        }
+        checkNotNull(warehouseId, "warehouseId");
         ProductDto product = productCatalogClient.getProduct(productId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
                         String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_ID, productId)));
@@ -94,9 +93,7 @@ public class InventoryService {
 
     @Transactional
     public void moveInventory(Long productId, InventoryState fromState, InventoryState toState, Integer quantityToMove, Long warehouseId) {
-        if (warehouseId == null) {
-            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
-        }
+        checkNotNull(warehouseId, "warehouseId");
         ProductDto product = productCatalogClient.getProduct(productId)
                 .orElseThrow(() -> new InventoryException(InventoryErrorCode.PRODUCT_NOT_FOUND,
                         String.format(ErrorMessages.PRODUCT_NOT_FOUND_WITH_ID, productId)));
@@ -117,9 +114,7 @@ public class InventoryService {
 
     @Transactional
     public void convertInventory(String skuId, PackType fromPackType, PackType toPackType, Integer quantityToConvert, Long warehouseId) {
-        if (warehouseId == null) {
-            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
-        }
+        checkNotNull(warehouseId, "warehouseId");
         if (fromPackType == toPackType) {
             throw new InventoryException(InventoryErrorCode.INVALID_PACK_CONVERSION,
                     ErrorMessages.PACK_CONVERSION_SAME_TYPE);
@@ -373,16 +368,12 @@ public class InventoryService {
     }
 
     public List<Inventory> getInventoryByProductIdAndWarehouseId(Long productId, Long warehouseId) {
-        if (warehouseId == null) {
-            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
-        }
+        checkNotNull(warehouseId, "warehouseId");
         return inventoryRepository.findByProductIdAndWarehouseId(productId, warehouseId);
     }
 
     public Integer getAvailableQuantity(Long productId, PackType packType, Long warehouseId) {
-        if (warehouseId == null) {
-            throw new InventoryException(InventoryErrorCode.INVALID_REQUEST, "Warehouse ID is required");
-        }
+        checkNotNull(warehouseId, "warehouseId");
         Optional<Inventory> inventory = inventoryRepository.findByProductIdAndStateAndPackTypeAndWarehouseId(productId, InventoryState.AVAILABLE, packType, warehouseId);
         return inventory.map(Inventory::getQuantity).orElse(0);
     }

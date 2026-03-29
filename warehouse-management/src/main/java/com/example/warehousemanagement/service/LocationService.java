@@ -1,5 +1,6 @@
 package com.example.warehousemanagement.service;
 
+import com.example.commons.service.AbstractService;
 import com.example.warehousemanagement.dto.LocationCreateRequest;
 import com.example.warehousemanagement.entity.Location;
 import com.example.warehousemanagement.repository.LocationRepository;
@@ -7,7 +8,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
-public class LocationService {
+public class LocationService extends AbstractService {
 
     private final LocationRepository locationRepository;
 
@@ -16,9 +17,7 @@ public class LocationService {
     }
 
     public Location createLocation(LocationCreateRequest request) {
-        if (request.getWarehouseId() == null) {
-            throw new IllegalArgumentException("Warehouse ID is required");
-        }
+        checkNotNull(request.getWarehouseId(), "warehouseId");
         Location location = new Location(request.getAisle(), request.getDisplayName(), request.getWarehouseId());
         return locationRepository.save(location);
     }

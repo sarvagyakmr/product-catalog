@@ -1,6 +1,6 @@
 package com.example.warehousemanagement.service;
 
-import com.example.warehousemanagement.client.OrderManagementClient;
+import com.example.commons.client.OrderManagementClient;
 import com.example.warehousemanagement.dto.GateEntryCreateRequest;
 import com.example.warehousemanagement.entity.GateEntry;
 import com.example.warehousemanagement.repository.GateEntryRepository;

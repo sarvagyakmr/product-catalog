@@ -1,15 +1,11 @@
 package com.example.warehousemanagement.entity;
 
-import org.springframework.data.annotation.Id;
+import com.example.commons.entity.BaseEntity;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("LOCATIONS")
-public class Location {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class Location extends BaseEntity {
 
     @Column("AISLE")
     private String aisle;
@@ -32,14 +28,6 @@ public class Location {
         this.aisle = aisle;
         this.displayName = displayName;
         this.warehouseId = warehouseId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getAisle() {

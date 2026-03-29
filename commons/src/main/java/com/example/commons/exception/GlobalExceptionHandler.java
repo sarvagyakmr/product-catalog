@@ -30,6 +30,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status).body(error);
     }
 
+    @ExceptionHandler(NullObjectException.class)
+    public ResponseEntity<ErrorResponse> handleNullObjectException(NullObjectException ex, HttpServletRequest request) {
+        log.warn("NullObjectException at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                "NULL_OBJECT",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
         log.warn("IllegalArgumentException at {}: {}", request.getRequestURI(), ex.getMessage(), ex);

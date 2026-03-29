@@ -1,8 +1,11 @@
-package com.example.warehousemanagement.dto;
+package com.example.commons.dto;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
+/**
+ * DTO for outward order data transferred between modules.
+ */
 public class OutwardOrderDto {
     private Long id;
     private String channelOrderId;

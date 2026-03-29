@@ -1,12 +1,14 @@
 package com.example.warehousemanagement.service;
 
-import com.example.warehousemanagement.client.OrderManagementClient;
-import com.example.warehousemanagement.dto.OutwardOrderDto;
-import com.example.warehousemanagement.dto.OutwardOrderItemDto;
+import com.example.commons.events.EventNames;
+import com.example.commons.client.OrderManagementClient;
+import com.example.commons.dto.OutwardOrderDto;
+import com.example.commons.events.RedisEventSubscriber;
+import com.example.commons.dto.OutwardOrderItemDto;
 import com.example.warehousemanagement.dto.PickListCreateEvent;
 import com.example.warehousemanagement.entity.OutwardOrder;
 import com.example.warehousemanagement.entity.OutwardOrderItem;
-import com.example.warehousemanagement.enums.OutwardOrderStatus;
+import com.example.commons.enums.OutwardOrderStatus;
 import com.example.warehousemanagement.repository.OutwardOrderItemRepository;
 import com.example.warehousemanagement.repository.OutwardOrderRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,8 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Redis subscriber for warehouse-management events.
+ * Extends {@link RedisEventSubscriber} from commons module.
+ */
 @Service
-public class RedisSubscriber {
+public class RedisSubscriber extends RedisEventSubscriber {
 
     private final OutwardOrderRepository outwardOrderRepository;
     private final OutwardOrderItemRepository outwardOrderItemRepository;
@@ -41,16 +47,17 @@ public class RedisSubscriber {
         this.objectMapper = objectMapper;
     }
 
+    @Override
     @Transactional
     public void onMessage(String message, String channel) {
         try {
-            if ("allocated-orders".equals(channel)) {
+            if (EventNames.ALLOCATED_ORDERS.equals(channel)) {
                 OutwardOrderDto dto = objectMapper.readValue(message, OutwardOrderDto.class);
                 processAllocatedOrder(dto);
-            } else if ("cancelled-orders".equals(channel)) {
+            } else if (EventNames.CANCELLED_ORDERS.equals(channel)) {
                 OutwardOrderDto dto = objectMapper.readValue(message, OutwardOrderDto.class);
                 processCancelledOrder(dto);
-            } else if ("picklist-create".equals(channel)) {
+            } else if (EventNames.PICKLIST_CREATE.equals(channel)) {
                 PickListCreateEvent event = objectMapper.readValue(message, PickListCreateEvent.class);
                 pickListService.createPickListForItem(event.getOrderId(), event.getProductId(), event.getQuantity());
             }
@@ -96,7 +103,7 @@ public class RedisSubscriber {
 
                 // Publish picklist create event for this item
                 PickListCreateEvent event = new PickListCreateEvent(
-                    dto.getId(),
+                    localOrder.getId(),
                     itemDto.getProductId(),
                     quantity
                 );

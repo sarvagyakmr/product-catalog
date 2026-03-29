@@ -1,16 +1,11 @@
 package com.example.commons.entity;
 
 import com.example.commons.enums.InventoryState;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("INVENTORY")
-public class Inventory {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class Inventory extends BaseEntity {
 
     @Column("PRODUCT_ID")
     private Long productId;
@@ -28,14 +23,6 @@ public class Inventory {
         this.productId = productId;
         this.quantity = quantity;
         this.state = state;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getProductId() {

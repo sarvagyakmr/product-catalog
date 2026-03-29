@@ -1,17 +1,14 @@
 package com.example.productcatalog.entity;
 
+import com.example.commons.entity.BaseEntity;
 import com.example.commons.enums.PackType;
 import com.example.commons.enums.ProductType;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("PRODUCTS")
-public class Product {
+public class Product extends BaseEntity {
 
-    @Id
-    @Column("ID")
-    private Long id;
     @Column("CLIENT_ID")
     private Long clientId;
     @Column("SKU_ID")
@@ -30,14 +27,6 @@ public class Product {
         this.skuId = skuId;
         this.type = type;
         this.packType = packType;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getClientId() {

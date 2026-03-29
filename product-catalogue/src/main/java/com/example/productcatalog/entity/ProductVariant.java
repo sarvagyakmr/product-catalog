@@ -1,16 +1,13 @@
 package com.example.productcatalog.entity;
 
+import com.example.commons.entity.BaseEntity;
 import com.example.commons.enums.VariantType;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("PRODUCT_VARIANTS")
-public class ProductVariant {
+public class ProductVariant extends BaseEntity {
 
-    @Id
-    @Column("ID")
-    private Long id;
     @Column("PRODUCT_ID")
     private Long productId;
     @Column("VARIANT_PRODUCT_ID")
@@ -26,14 +23,6 @@ public class ProductVariant {
         this.productId = productId;
         this.variantProductId = variantProductId;
         this.variantType = variantType;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getProductId() {

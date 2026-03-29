@@ -1,8 +1,8 @@
-package com.example.warehousemanagement.client;
+package com.example.commons.client;
 
-import com.example.warehousemanagement.dto.OutwardOrderDto;
-import com.example.warehousemanagement.dto.OutwardOrderItemDto;
-import com.example.warehousemanagement.enums.OutwardOrderStatus;
+import com.example.commons.dto.OutwardOrderDto;
+import com.example.commons.dto.OutwardOrderItemDto;
+import com.example.commons.enums.OutwardOrderStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -10,6 +10,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Client for communicating with the Order Management Service.
+ */
 @Component
 public class OrderManagementClient {
 
@@ -22,7 +25,7 @@ public class OrderManagementClient {
     }
 
     public void createGateEntry(Long inwardOrderId) {
-        OrderManagementGateEntryCreateRequest request = new OrderManagementGateEntryCreateRequest(inwardOrderId);
+        GateEntryCreateRequest request = new GateEntryCreateRequest(inwardOrderId);
         restTemplate.postForObject(orderManagementUrl + "/api/gate-entries", request, Object.class);
     }
 
@@ -61,41 +64,31 @@ public class OrderManagementClient {
         restTemplate.put(url, request);
     }
 
-    private static class OrderManagementGateEntryCreateRequest {
+    // ===== Request DTOs =====
+
+    public static class GateEntryCreateRequest {
         private Long orderId;
 
-        public OrderManagementGateEntryCreateRequest() {
-        }
+        public GateEntryCreateRequest() {}
 
-        public OrderManagementGateEntryCreateRequest(Long orderId) {
+        public GateEntryCreateRequest(Long orderId) {
             this.orderId = orderId;
         }
 
-        public Long getOrderId() {
-            return orderId;
-        }
-
-        public void setOrderId(Long orderId) {
-            this.orderId = orderId;
-        }
+        public Long getOrderId() { return orderId; }
+        public void setOrderId(Long orderId) { this.orderId = orderId; }
     }
 
-    private static class UpdateStatusRequest {
+    public static class UpdateStatusRequest {
         private OutwardOrderStatus status;
 
-        public UpdateStatusRequest() {
-        }
+        public UpdateStatusRequest() {}
 
         public UpdateStatusRequest(OutwardOrderStatus status) {
             this.status = status;
         }
 
-        public OutwardOrderStatus getStatus() {
-            return status;
-        }
-
-        public void setStatus(OutwardOrderStatus status) {
-            this.status = status;
-        }
+        public OutwardOrderStatus getStatus() { return status; }
+        public void setStatus(OutwardOrderStatus status) { this.status = status; }
     }
 }

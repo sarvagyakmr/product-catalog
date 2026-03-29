@@ -1,16 +1,12 @@
 package com.example.warehousemanagement.entity;
 
+import com.example.commons.entity.BaseEntity;
 import com.example.warehousemanagement.enums.ItemStatus;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("ITEMS")
-public class Item {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class Item extends BaseEntity {
 
     @Column("PRODUCT_ID")
     private Long productId;
@@ -33,14 +29,6 @@ public class Item {
         this.productId = productId;
         this.status = status;
         this.warehouseId = warehouseId;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getProductId() {

@@ -1,15 +1,11 @@
 package com.example.productcatalog.entity;
 
-import org.springframework.data.annotation.Id;
+import com.example.commons.entity.BaseEntity;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("COMBO_PRODUCTS")
-public class ComboProduct {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class ComboProduct extends BaseEntity {
     
     @Column("COMBO_PRODUCT_ID")
     private Long comboProductId;
@@ -27,14 +23,6 @@ public class ComboProduct {
         this.comboProductId = comboProductId;
         this.productId = productId;
         this.quantity = quantity;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getComboProductId() {

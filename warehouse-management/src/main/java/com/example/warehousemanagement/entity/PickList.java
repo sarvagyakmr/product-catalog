@@ -1,16 +1,12 @@
 package com.example.warehousemanagement.entity;
 
+import com.example.commons.entity.BaseEntity;
 import com.example.warehousemanagement.enums.PickListStatus;
-import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("PICK_LISTS")
-public class PickList {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class PickList extends BaseEntity {
 
     @Column("ORDER_ID")
     private Long orderId;
@@ -32,14 +28,6 @@ public class PickList {
         this.productId = productId;
         this.storageBoxId = storageBoxId;
         this.status = status;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getOrderId() {

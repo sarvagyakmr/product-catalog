@@ -1,12 +1,12 @@
 package com.example.warehousemanagement.service;
 
-import com.example.warehousemanagement.client.OrderManagementClient;
-import com.example.warehousemanagement.dto.OutwardOrderDto;
-import com.example.warehousemanagement.dto.OutwardOrderItemDto;
+import com.example.commons.client.OrderManagementClient;
+import com.example.commons.dto.OutwardOrderDto;
+import com.example.commons.dto.OutwardOrderItemDto;
 import com.example.warehousemanagement.dto.PickListCreateEvent;
 import com.example.warehousemanagement.entity.OutwardOrder;
 import com.example.warehousemanagement.entity.OutwardOrderItem;
-import com.example.warehousemanagement.enums.OutwardOrderStatus;
+import com.example.commons.enums.OutwardOrderStatus;
 import com.example.warehousemanagement.repository.OutwardOrderItemRepository;
 import com.example.warehousemanagement.repository.OutwardOrderRepository;
 import java.util.List;
@@ -82,7 +82,7 @@ public class OutwardOrderService {
 
                     // Publish picklist create event for this item
                     PickListCreateEvent event = new PickListCreateEvent(
-                        dto.getId(),
+                        localOrder.getId(),
                         itemDto.getProductId(),
                         quantity
                     );

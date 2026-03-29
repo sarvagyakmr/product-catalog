@@ -1,5 +1,6 @@
 package com.example.inventory.config;
 
+import com.example.commons.events.EventNames;
 import com.example.inventory.service.InventoryEventSubscriber;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,10 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 
+/**
+ * Redis configuration for inventory module.
+ * Uses {@link EventNames} from commons for channel names.
+ */
 @Configuration
 public class RedisConfig {
 
@@ -49,7 +54,7 @@ public class RedisConfig {
 
     @Bean
     public ChannelTopic inventoryEventsTopic() {
-        return new ChannelTopic("inventory-events");
+        return new ChannelTopic(EventNames.INVENTORY_EVENTS);
     }
 
     @Bean

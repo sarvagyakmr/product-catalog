@@ -1,17 +1,12 @@
 package com.example.warehousemanagement.entity;
 
-import com.example.warehousemanagement.enums.OutwardOrderStatus;
-import java.time.OffsetDateTime;
-import org.springframework.data.annotation.Id;
+import com.example.commons.entity.BaseEntity;
+import com.example.commons.enums.OutwardOrderStatus;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("WM_OUTWARD_ORDERS")
-public class OutwardOrder {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class OutwardOrder extends BaseEntity {
 
     @Column("ORDER_MANAGEMENT_ID")
     private Long orderManagementId;
@@ -28,9 +23,6 @@ public class OutwardOrder {
     @Column("STATUS")
     private OutwardOrderStatus status;
 
-    @Column("CREATED_AT")
-    private OffsetDateTime createdAt;
-
     public OutwardOrder() {
     }
 
@@ -40,15 +32,6 @@ public class OutwardOrder {
         this.channel = channel;
         this.warehouseId = warehouseId;
         this.status = status;
-        this.createdAt = OffsetDateTime.now();
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getOrderManagementId() {
@@ -89,13 +72,5 @@ public class OutwardOrder {
 
     public void setStatus(OutwardOrderStatus status) {
         this.status = status;
-    }
-
-    public OffsetDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

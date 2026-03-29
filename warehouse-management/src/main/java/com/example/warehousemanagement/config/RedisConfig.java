@@ -1,5 +1,7 @@
 package com.example.warehousemanagement.config;
 
+import com.example.commons.events.EventNames;
+import com.example.warehousemanagement.service.RedisSubscriber;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,13 +11,16 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import com.example.warehousemanagement.service.RedisSubscriber;
 import redis.embedded.RedisServer;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 
+/**
+ * Redis configuration for warehouse-management.
+ * Uses {@link EventNames} from commons for channel names.
+ */
 @Configuration
 public class RedisConfig {
 
@@ -50,17 +55,17 @@ public class RedisConfig {
 
     @Bean
     public ChannelTopic allocatedOrdersTopic() {
-        return new ChannelTopic("allocated-orders");
+        return new ChannelTopic(EventNames.ALLOCATED_ORDERS);
     }
 
     @Bean
     public ChannelTopic cancelledOrdersTopic() {
-        return new ChannelTopic("cancelled-orders");
+        return new ChannelTopic(EventNames.CANCELLED_ORDERS);
     }
 
     @Bean
     public ChannelTopic picklistCreateTopic() {
-        return new ChannelTopic("picklist-create");
+        return new ChannelTopic(EventNames.PICKLIST_CREATE);
     }
 
     @Bean

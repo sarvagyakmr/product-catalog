@@ -1,7 +1,7 @@
 package com.example.ordermanagement.service;
 
+import com.example.commons.client.ProductCatalogClient;
 import com.example.commons.dto.InventoryEventDto;
-import com.example.ordermanagement.client.ProductCatalogServiceClient;
 import com.example.ordermanagement.dto.GateEntryItemCreateRequest;
 import com.example.ordermanagement.entity.GateEntry;
 import com.example.ordermanagement.entity.GateEntryItem;
@@ -20,18 +20,18 @@ public class GateEntryItemService {
     private final GateEntryItemRepository gateEntryItemRepository;
     private final GateEntryRepository gateEntryRepository;
     private final InwardOrderRepository inwardOrderRepository;
-    private final ProductCatalogServiceClient productCatalogServiceClient;
+    private final ProductCatalogClient productCatalogClient;
     private final RedisPublisher redisPublisher;
 
     public GateEntryItemService(GateEntryItemRepository gateEntryItemRepository,
                                 GateEntryRepository gateEntryRepository,
                                 InwardOrderRepository inwardOrderRepository,
-                                ProductCatalogServiceClient productCatalogServiceClient,
+                                ProductCatalogClient productCatalogClient,
                                 RedisPublisher redisPublisher) {
         this.gateEntryItemRepository = gateEntryItemRepository;
         this.gateEntryRepository = gateEntryRepository;
         this.inwardOrderRepository = inwardOrderRepository;
-        this.productCatalogServiceClient = productCatalogServiceClient;
+        this.productCatalogClient = productCatalogClient;
         this.redisPublisher = redisPublisher;
     }
 
@@ -44,7 +44,7 @@ public class GateEntryItemService {
             throw new IllegalStateException("Gate entry must be in PROCESSING status to add items. Current status: " + gateEntry.getStatus());
         }
 
-        productCatalogServiceClient.getProduct(request.getProductId())
+        productCatalogClient.getProduct(request.getProductId())
             .orElseThrow(() -> new IllegalArgumentException("Product not found with id: " + request.getProductId()));
 
         GateEntryItem gateEntryItem = new GateEntryItem(gateEntryId, request.getProductId(), request.getQuantity());

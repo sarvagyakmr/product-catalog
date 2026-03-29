@@ -1,5 +1,8 @@
-package com.example.warehousemanagement.dto;
+package com.example.commons.dto;
 
+/**
+ * DTO for outward order item data transferred between modules.
+ */
 public class OutwardOrderItemDto {
     private Long id;
     private Long orderId;

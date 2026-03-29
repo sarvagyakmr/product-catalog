@@ -1,14 +1,19 @@
 package com.example.inventory.service;
 
 import com.example.commons.dto.InventoryEventDto;
-import com.example.commons.enums.InventoryState;
+import com.example.commons.events.EventNames;
+import com.example.commons.events.RedisEventSubscriber;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * Redis subscriber for inventory events.
+ * Extends {@link RedisEventSubscriber} from commons module.
+ */
 @Service
-public class InventoryEventSubscriber {
+public class InventoryEventSubscriber extends RedisEventSubscriber {
 
     private final InventoryService inventoryService;
     private final ObjectMapper objectMapper;
@@ -18,9 +23,10 @@ public class InventoryEventSubscriber {
         this.objectMapper = objectMapper;
     }
 
+    @Override
     @Transactional
     public void onMessage(String message, String channel) {
-        if (!"inventory-events".equals(channel)) {
+        if (!EventNames.INVENTORY_EVENTS.equals(channel)) {
             return;
         }
         try {

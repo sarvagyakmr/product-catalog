@@ -1,15 +1,11 @@
 package com.example.ordermanagement.entity;
 
-import org.springframework.data.annotation.Id;
+import com.example.commons.entity.BaseEntity;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 @Table("GATE_ENTRY_ITEMS")
-public class GateEntryItem {
-
-    @Id
-    @Column("ID")
-    private Long id;
+public class GateEntryItem extends BaseEntity {
 
     @Column("GATE_ENTRY_ID")
     private Long gateEntryId;
@@ -27,14 +23,6 @@ public class GateEntryItem {
         this.gateEntryId = gateEntryId;
         this.productId = productId;
         this.quantity = quantity;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Long getGateEntryId() {
