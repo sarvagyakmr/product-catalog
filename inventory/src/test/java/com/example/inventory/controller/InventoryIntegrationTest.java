@@ -9,16 +9,14 @@ import com.example.inventory.controller.InventoryController.MoveInventoryRequest
 import com.example.inventory.entity.Inventory;
 import com.example.inventory.repository.InventoryRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Optional;
@@ -54,6 +52,9 @@ public class InventoryIntegrationTest {
 
     @MockBean
     private ProductCatalogClient productCatalogClient;
+
+    @MockBean
+    private RedisMessageListenerContainer redisMessageListenerContainer;
 
     @BeforeEach
     void setUp() {

@@ -1,19 +1,16 @@
 package com.example.productcatalog.controller;
 
-import com.example.commons.dto.ProductDto;
 import com.example.productcatalog.entity.Product;
+import com.example.commons.enums.PackType;
 import com.example.commons.enums.ProductType;
 import com.example.productcatalog.repository.ProductRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,9 +43,7 @@ public class ProductControllerIntegrationTest {
 
     @Test
     void createProduct_withValidData_shouldPersistAndReturn201() throws Exception {
-        ProductDto request = new ProductDto();
-        request.setType(ProductType.SINGLE.name());
-        request.setPackType("EACH");
+        Product request = new Product(1L, "SKU-PROD-100", ProductType.SINGLE, PackType.EACH);
 
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)

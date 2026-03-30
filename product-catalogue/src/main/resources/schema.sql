@@ -3,7 +3,10 @@ CREATE TABLE IF NOT EXISTS products (
     client_id BIGINT NOT NULL,
     sku_id VARCHAR(255) NOT NULL,
     type VARCHAR(50) NOT NULL,
-    pack_type VARCHAR(50)
+    pack_type VARCHAR(50),
+    version INT,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS product_variants (

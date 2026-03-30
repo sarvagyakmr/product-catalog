@@ -138,8 +138,8 @@ public class OrderManagementIntegrationTest {
 
         InventoryEventDto capturedEvent = eventCaptor.getValue();
         assertThat(capturedEvent.getProductId()).isEqualTo(99L);
-        assertThat(capturedEvent.getFromState()).isEqualTo(InventoryState.ALLOCATED.name());
-        assertThat(capturedEvent.getToState()).isEqualTo(InventoryState.AVAILABLE.name());
+        assertThat(capturedEvent.getFromState()).isEqualTo(InventoryState.ALLOCATED);
+        assertThat(capturedEvent.getToState()).isEqualTo(InventoryState.AVAILABLE);
         assertThat(capturedEvent.getQuantity()).isEqualTo(10);
         
         verify(redisPublisher, times(1)).publishCancelledOrder(any(OutwardOrder.class));
