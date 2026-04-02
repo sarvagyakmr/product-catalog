@@ -1,3 +1,12 @@
-# Dependencies for mock data generation scripts
+# Dependencies for mock data generation and event subscription scripts
 requests>=2.28.0
 faker>=18.0.0
+redis>=4.5.0
+
+# ML and Data Processing
+numpy>=1.24.0  # Optional: for advanced statistical operations
+
+# FastAPI Web Server
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
